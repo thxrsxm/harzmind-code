@@ -3,3 +3,5 @@ out/
 
 hzmind.yaml
 hzmind.exe
+
+.env
