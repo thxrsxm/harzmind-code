@@ -156,7 +156,51 @@ func configCMD(r *REPL, args []string) error {
 	if r.config == nil {
 		return fmt.Errorf("config is missing")
 	}
-	r.out.Println(r.config.String())
+	if len(args) == 0 {
+		r.out.Println(r.config.String())
+	} else if len(args) == 1 {
+		switch args[0] {
+		case "model":
+			r.out.Println(r.config.Model)
+		case "api":
+			r.out.Println(r.config.API)
+		case "outfile":
+			r.out.Println(r.config.Outfile)
+		case "reload":
+			config, err := config.LoadConfig(internal.PATH_FILE_CONFIG)
+			if err != nil {
+				return err
+			}
+			r.config = config
+			rnbw.ForgroundColor(rnbw.Green)
+			r.out.Println("Config successfully reloaded")
+			rnbw.ResetColor()
+		}
+	} else if len(args) == 2 {
+		switch args[0] {
+		case "model":
+			r.config.Model = args[1]
+		case "api":
+			r.config.API = args[1]
+		case "outfile":
+			switch args[1] {
+			case "true":
+				r.config.Outfile = true
+			case "false":
+				r.config.Outfile = false
+			default:
+				return fmt.Errorf("format is wrong (only true/false)")
+			}
+		}
+		// Save config changes
+		err := r.config.Save(internal.PATH_FILE_CONFIG)
+		if err == nil {
+			rnbw.ForgroundColor(rnbw.Green)
+			r.out.Println("Config successfully updated")
+			rnbw.ResetColor()
+		}
+		return err
+	}
 	return nil
 }
 

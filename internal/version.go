@@ -1,3 +1,3 @@
 package internal
 
-const VERSION_DATE = "202512021342"
+const VERSION_DATE = "202512021405"

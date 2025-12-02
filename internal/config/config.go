@@ -51,6 +51,14 @@ func LoadConfig(path string) (*Config, error) {
 	return &config, nil
 }
 
+func (c *Config) Save(path string) error {
+	yamlData, err := yaml.Marshal(c)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, yamlData, 0644)
+}
+
 func CreateConfig(path string) error {
 	// Create a new Config instance and populate it
 	config := Config{
