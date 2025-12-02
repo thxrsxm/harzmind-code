@@ -1,3 +1,5 @@
+github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
+github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
 github.com/thxrsxm/rnbw v0.0.0-20251111180835-da96d3b0507e h1:VVuuDyIK9xtxt3uNmVNQfWbJx3viyblkbeQK/0DrO9I=
 github.com/thxrsxm/rnbw v0.0.0-20251111180835-da96d3b0507e/go.mod h1:Eprt+0e7OqPRm34bhaavxhUb4dCy4Ovh03ZZdcwTjwk=
 github.com/thxrsxm/rnbw v0.0.0-20251112144034-3a6d2c6cf2f1 h1:9joV1IwpSxKI7w6sTZfdFeNj7Z0b/PQQCTltEAI7iBE=

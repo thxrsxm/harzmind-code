@@ -2,13 +2,13 @@ package repl
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/thxrsxm/harzmind-code/internal"
 	"github.com/thxrsxm/harzmind-code/internal/api"
 	"github.com/thxrsxm/harzmind-code/internal/config"
 	"github.com/thxrsxm/harzmind-code/internal/executor"
+	"github.com/thxrsxm/harzmind-code/internal/setup"
 	"github.com/thxrsxm/rnbw"
 )
 
@@ -96,36 +96,13 @@ func exitCMD(r *REPL, args []string) error {
 }
 
 func initCMD(r *REPL, args []string) error {
-	// Check hzmind directory not exists
-	if _, err := os.Stat(DIR_MAIN); os.IsNotExist(err) {
-		// Create hzmind directory
-		err := os.Mkdir(DIR_MAIN, 0755)
-		if err != nil {
-			return err
-		}
+	err := setup.SetupWorkingDir()
+	if err != nil {
+		return err
 	}
-	// Check config file not exists
-	if _, err := os.Stat(PATH_FILE_CONFIG); os.IsNotExist(err) {
-		// Create config file
-		err := config.CreateConfig(PATH_FILE_CONFIG)
-		if err != nil {
-			return nil
-		}
-	}
-	// Check HZMIND.md not exists
-	if _, err := os.Stat(PATH_FILE_README); os.IsNotExist(err) {
-		// Create HZMIND.md
-		readme, err := os.Create(PATH_FILE_README)
-		if err != nil {
-			return err
-		}
-		defer readme.Close()
-	}
-	if r != nil {
-		rnbw.ForgroundColor(rnbw.Green)
-		r.out.Println("Project initiated")
-		rnbw.ResetColor()
-	}
+	rnbw.ForgroundColor(rnbw.Green)
+	r.out.Println("Project initiated")
+	rnbw.ResetColor()
 	return nil
 }
 
@@ -136,7 +113,7 @@ func forgetCMD(r *REPL, args []string) error {
 }
 
 func modelsCMD(r *REPL, args []string) error {
-	config, err := config.LoadConfig(PATH_FILE_CONFIG)
+	config, err := config.LoadConfig(internal.PATH_FILE_CONFIG)
 	if err != nil {
 		return err
 	}

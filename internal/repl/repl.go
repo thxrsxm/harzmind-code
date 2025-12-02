@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/thxrsxm/harzmind-code/internal"
 	"github.com/thxrsxm/harzmind-code/internal/api"
 	"github.com/thxrsxm/harzmind-code/internal/codebase"
 	"github.com/thxrsxm/harzmind-code/internal/config"
@@ -23,26 +24,21 @@ type REPL struct {
 	messages []api.Message
 }
 
-func NewREPL() (*REPL, error) {
-	apiToken := os.Getenv(API_TOKEN_NAME)
-	if len(apiToken) == 0 {
-		return nil, fmt.Errorf("API token is missing (%s)", API_TOKEN_NAME)
-	}
+func NewREPL(token string) (*REPL, error) {
 	r := &REPL{
 		running:  false,
-		token:    apiToken,
+		token:    token,
 		commands: []CMD{},
 		messages: []api.Message{},
 	}
-	initCMD(nil, nil)
 	// Load config
-	config, err := config.LoadConfig(PATH_FILE_CONFIG)
+	config, err := config.LoadConfig(internal.PATH_FILE_CONFIG)
 	if err != nil {
 		return nil, err
 	}
 	r.config = config
 	// Create output
-	o, err := output.NewOutput(PATH_DIR_OUT, config.Outfile)
+	o, err := output.NewOutput(internal.PATH_DIR_OUT, config.Outfile)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +60,7 @@ func (r *REPL) handleUserMessage(msg string) (string, error) {
 		return "", err
 	}
 	// Load HZMIND.md
-	data, err := os.ReadFile(PATH_FILE_README)
+	data, err := os.ReadFile(internal.PATH_FILE_README)
 	if err != nil {
 		r.out.PrintWarning("no HZMIND.md file!")
 	}
@@ -107,7 +103,7 @@ func (r *REPL) printTitle() {
 	helpCMD(r, nil)
 }
 
-func (r *REPL) handleCommand(command string, args []string) error {
+func (r *REPL) HandleCommand(command string, args []string) error {
 	for _, v := range r.commands {
 		if command == v.name {
 			return v.command(r, args)
@@ -147,7 +143,7 @@ func (r *REPL) Run() {
 		if input[0] == '/' && len(input) > 1 {
 			args := strings.Split(input[1:], " ")
 			if len(args) >= 1 {
-				err := r.handleCommand(strings.ToLower(args[0]), args[1:])
+				err := r.HandleCommand(strings.ToLower(args[0]), args[1:])
 				if err != nil {
 					r.out.PrintfError("%v\n", err)
 				}
