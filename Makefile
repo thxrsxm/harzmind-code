@@ -3,6 +3,7 @@ BUILD_DATE = $(shell date +%Y%m%d%H%M)
 
 BUILD_DIR = ./bin
 INTERNAL_DIR = ./internal
+INSTALL_DIR = $(APPDATA)/HarzMindCode
 
 VERSION_FILE = version.go
 
@@ -47,3 +48,14 @@ run:
 clean: confirm
 	@echo "Cleaning up..."
 	@rm -rf ${BUILD_DIR}
+
+## install: install the application for the user
+.PHONY: install
+install:
+	@mkdir -p $(INSTALL_DIR)
+	@echo "Copying binary to $(INSTALL_DIR)..."
+	@cp ${BINARY_NAME}.exe $(INSTALL_DIR)/
+	@echo "Installation complete! The binary has been copied to $(INSTALL_DIR)."
+	@echo "To make it available in your PATH, add $(APPDATA)\HarzMindCode to your environment variables manually."
+	@echo "On Windows, go to System Properties > Environment Variables and edit the User PATH."
+	@echo "Please restart your terminal for changes to take effect."
