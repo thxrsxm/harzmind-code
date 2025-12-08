@@ -6,7 +6,6 @@ import (
 
 	"github.com/thxrsxm/harzmind-code/internal"
 	"github.com/thxrsxm/harzmind-code/internal/api"
-	"github.com/thxrsxm/harzmind-code/internal/config"
 	"github.com/thxrsxm/harzmind-code/internal/executor"
 	"github.com/thxrsxm/harzmind-code/internal/setup"
 	"github.com/thxrsxm/rnbw"
@@ -69,17 +68,31 @@ func addAllCommands(r *REPL) {
 		"Show info",
 		infoCMD,
 	))
-	// /config
+	/*
+		// /config
+		r.AddCommand(NewCMD(
+			"config",
+			"Show config",
+			configCMD,
+		))
+	*/
+	// /acc
 	r.AddCommand(NewCMD(
-		"config",
-		"Show config",
-		configCMD,
+		"acc",
+		"Account management",
+		accCMD,
 	))
 	// /editor
 	r.AddCommand(NewCMD(
 		"editor",
 		"Open CLI editor",
 		editorCMD,
+	))
+	// model
+	r.AddCommand(NewCMD(
+		"model",
+		"Change model",
+		modelCMD,
 	))
 }
 
@@ -96,7 +109,7 @@ func exitCMD(r *REPL, args []string) error {
 }
 
 func initCMD(r *REPL, args []string) error {
-	err := setup.SetupWorkingDir()
+	err := setup.SetupProjectDir()
 	if err != nil {
 		return err
 	}
@@ -113,11 +126,11 @@ func forgetCMD(r *REPL, args []string) error {
 }
 
 func modelsCMD(r *REPL, args []string) error {
-	config, err := config.LoadConfig(internal.PATH_FILE_CONFIG)
+	account, err := r.config.GetCurrentAccount()
 	if err != nil {
 		return err
 	}
-	models, err := api.GetModels(config.API, r.token)
+	models, err := api.GetModels(account.ApiUrl, account.ApiKey)
 	if err != nil {
 		return err
 	}
@@ -152,6 +165,65 @@ func infoCMD(r *REPL, args []string) error {
 	return nil
 }
 
+func accCMD(r *REPL, args []string) error {
+	if len(args) == 0 {
+		// Show all accounts
+		for _, v := range r.config.Accounts {
+			r.out.Println(v)
+			r.out.Println()
+		}
+	} else if len(args) == 1 {
+		switch args[0] {
+		case "new":
+			// Create a new account
+			if err := r.handleAccountCreation(); err != nil {
+				return err
+			}
+			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+		}
+	} else if len(args) == 2 {
+		switch args[0] {
+		case "login":
+			if _, err := r.config.GetAccount(args[1]); err != nil {
+				return err
+			}
+			r.config.CurrentAccountName = args[1]
+			rnbw.ForgroundColor(rnbw.Green)
+			r.out.Printf("Successfully logged in to %s\n", args[1])
+			rnbw.ResetColor()
+			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+		case "logout":
+			r.config.CurrentAccountName = ""
+			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+		case "remove":
+			r.config.RemoveAccount(args[1])
+			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+		case "info":
+			account, err := r.config.GetAccount(args[1])
+			if err != nil {
+				return err
+			}
+			r.out.Println(account)
+		}
+	}
+	return nil
+}
+
+func modelCMD(r *REPL, args []string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("wrong format")
+	}
+	account, err := r.config.GetCurrentAccount()
+	if err != nil {
+		return err
+	}
+	account.Model = args[0]
+	r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+	r.out.Printf("Successfully changed model to %s for account %s\n", args[0], r.config.CurrentAccountName)
+	return nil
+}
+
+/*
 func configCMD(r *REPL, args []string) error {
 	if r.config == nil {
 		return fmt.Errorf("config is missing")
@@ -203,6 +275,7 @@ func configCMD(r *REPL, args []string) error {
 	}
 	return nil
 }
+*/
 
 func editorCMD(r *REPL, args []string) error {
 	if len(args) == 1 {

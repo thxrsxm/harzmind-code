@@ -1,8 +1,11 @@
 package internal
 
+import "path/filepath"
+
 const (
-	FILE_CONFIG string = "hzmind.yaml"
+	FILE_CONFIG string = "config.json"
 	FILE_README string = "HZMIND.md"
+	FILE_IGNORE string = ".hzmignore"
 )
 
 const (
@@ -10,10 +13,9 @@ const (
 	DIR_OUT  string = "out"
 )
 
-const (
-	PATH_FILE_CONFIG string = DIR_MAIN + "/" + FILE_CONFIG
-	PATH_FILE_README string = DIR_MAIN + "/" + FILE_README
-	PATH_DIR_OUT     string = DIR_MAIN + "/" + DIR_OUT
+var (
+	PATH_FILE_CONFIG string = FILE_CONFIG
+	PATH_FILE_README string = filepath.Join(DIR_MAIN, FILE_README)
+	PATH_FILE_IGNORE string = filepath.Join(DIR_MAIN, FILE_IGNORE)
+	PATH_DIR_OUT     string = filepath.Join(DIR_MAIN, DIR_OUT)
 )
-
-const API_TOKEN_NAME string = "HARZMIND_API_TOKEN"

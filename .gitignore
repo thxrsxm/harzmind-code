@@ -3,5 +3,7 @@ out/
 
 hzmind.yaml
 hzmind.exe
+.hzmignore
+config.json
 
 .env

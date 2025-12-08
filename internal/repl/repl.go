@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"syscall"
 
 	"github.com/thxrsxm/harzmind-code/internal"
 	"github.com/thxrsxm/harzmind-code/internal/api"
@@ -13,38 +14,43 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal/config"
 	"github.com/thxrsxm/harzmind-code/internal/output"
 	"github.com/thxrsxm/rnbw"
+	"golang.org/x/term"
 )
 
 type REPL struct {
 	running  bool
-	token    string
 	out      *output.Output
 	config   *config.Config
+	reader   *bufio.Reader
 	commands []CMD
 	messages []api.Message
 }
 
-func NewREPL(token string) (*REPL, error) {
+func NewREPL(outputFile bool) (*REPL, error) {
 	r := &REPL{
 		running:  false,
-		token:    token,
+		reader:   bufio.NewReader(os.Stdin),
 		commands: []CMD{},
 		messages: []api.Message{},
 	}
 	// Load config
-	config, err := config.LoadConfig(internal.PATH_FILE_CONFIG)
+	cnfg, err := config.LoadConfig(internal.PATH_FILE_CONFIG)
 	if err != nil {
 		return nil, err
 	}
-	r.config = config
+	r.config = cnfg
 	// Create output
-	o, err := output.NewOutput(internal.PATH_DIR_OUT, config.Outfile)
+	o, err := output.NewOutput(internal.PATH_DIR_OUT, outputFile)
 	if err != nil {
 		return nil, err
 	}
 	r.out = o
 	// Add commands
 	addAllCommands(r)
+	// DEBUG
+	// Load API token
+	//apiToken := os.Getenv("HARZMIND_API_TOKEN")
+	//r.account = config.NewAccount("test", "https://api.mammouth.ai/v1/chat/completions", apiToken, "grok-3-mini")
 	return r, nil
 }
 
@@ -54,7 +60,10 @@ func (r *REPL) AddCommand(command *CMD) {
 
 func (r *REPL) handleUserMessage(msg string) (string, error) {
 	// Get code base
-	files := codebase.GetCodeBase(".", r.config.Ignore)
+	files, err := codebase.GetCodeBase(".")
+	if err != nil {
+		return "", err
+	}
 	jsonCodeBase, err := json.Marshal(files)
 	if err != nil {
 		return "", err
@@ -78,7 +87,12 @@ func (r *REPL) handleUserMessage(msg string) (string, error) {
 	}
 	r.messages = append(r.messages, userMsg)
 	// Send API-Request
-	resp, err := api.SendMessage(r.config.API, r.config.Model, r.token, r.messages)
+	account, err := r.config.GetCurrentAccount()
+	if err != nil {
+		return "", err
+	}
+	// TODO check account members before send the request
+	resp, err := api.SendMessage(account.ApiUrl, account.Model, account.ApiKey, r.messages)
 	if err != nil {
 		// Remove last message from messages (user message)
 		if len(r.messages) >= 1 {
@@ -103,6 +117,29 @@ func (r *REPL) printTitle() {
 	helpCMD(r, nil)
 }
 
+func (r *REPL) readInput() (string, error) {
+	input, err := r.reader.ReadString('\n')
+	// Write user input to output file
+	if r.out.File != nil {
+		r.out.File.Print(input)
+	}
+	// Handle input error
+	if err != nil {
+		return "", err
+	}
+	input = strings.TrimSpace(input)
+	return input, nil
+}
+
+func (r *REPL) readPassword() (string, error) {
+	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		return "", err
+	}
+	r.out.Println()
+	return string(bytePassword), nil
+}
+
 func (r *REPL) HandleCommand(command string, args []string) error {
 	for _, v := range r.commands {
 		if command == v.name {
@@ -116,25 +153,28 @@ func (r *REPL) Run() {
 	r.running = true
 	r.printTitle()
 	rnbw.ResetColor()
-	reader := bufio.NewReader(os.Stdin)
 	r.messages = append(r.messages, api.Message{Role: "system", Content: ""})
+	// Login to current account
+	if account, err := r.config.GetCurrentAccount(); err == nil {
+		rnbw.ForgroundColor(rnbw.Green)
+		r.out.Printf("\nSuccessfully logged in to %s\n", account.Name)
+		rnbw.ResetColor()
+	}
 	for r.running {
 		rnbw.ResetColor()
 		r.out.Println()
+		if _, err := r.config.GetCurrentAccount(); err != nil {
+			r.out.PrintlnWarning("no account")
+			r.out.Println()
+		}
 		rnbw.ForgroundColor(rnbw.Yellow)
 		r.out.Print("> ")
 		rnbw.ResetColor()
-		input, err := reader.ReadString('\n')
-		// Write user input to output file
-		if r.config.Outfile && r.out.File != nil {
-			r.out.File.Print(input)
-		}
-		// Handle input error
+		input, err := r.readInput()
 		if err != nil {
-			r.out.PrintfError("reading input: %v\n", err)
+			r.out.PrintfError("%v\n", err)
 			continue
 		}
-		input = strings.TrimSpace(input)
 		// Handle input is empty
 		if len(input) == 0 {
 			continue

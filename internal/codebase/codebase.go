@@ -1,73 +1,84 @@
+// Package codebase provides functionality for handling a codebase.
+// It allows for retrieving a list of files within a given directory,
+// excluding certain files and directories based on ignore patterns.
 package codebase
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
+
+	ignore "github.com/sabhiram/go-gitignore"
+	"github.com/thxrsxm/harzmind-code/internal"
 )
 
+// File represents a file within the codebase.
+// It contains the file's name, content, and path.
 type File struct {
 	Name    string `json:"name"`
 	Content string `json:"content"`
 	Path    string `json:"path"`
 }
 
-func (f *File) String() string {
+// String returns a string representation of the File struct.
+func (f File) String() string {
 	return fmt.Sprintf("Name: %s, Content: %s, Path: %s", f.Name, f.Content, f.Path)
 }
 
-func genIgnoreFilter(files []string) string {
-	var sb strings.Builder
-	for i, v := range files {
-		sb.WriteByte('(')
-		sb.WriteString(v)
-		sb.WriteByte(')')
-		if i < len(files)-1 {
-			sb.WriteByte('|')
-		}
-	}
-	return sb.String()
-}
-
-func GetCodeBase(root string, ignoreFiles []string) []File {
-	files := []File{}
-	re := regexp.MustCompile(genIgnoreFilter(ignoreFiles))
-	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		// Check if the current entry matches the ignore filter
-		if len(ignoreFiles) > 0 && re.MatchString(d.Name()) {
-			if d.IsDir() {
-				// Skip this directory and its contents
-				return filepath.SkipDir
-			} else {
-				// Create and append File to slice without content
-				files = append(files, File{
-					Name:    d.Name(),
-					Content: "",
-					Path:    path,
-				})
-				return nil
+// createIgnorer creates a new ignore compiler based on the ignore patterns.
+// It also reads additional ignore patterns from a .hzmignore file if it exists.
+func createIgnorer() *ignore.GitIgnore {
+	patterns := make([]string, len(ignorePatterns))
+	copy(patterns, ignorePatterns)
+	if file, err := os.Open(internal.PATH_FILE_IGNORE); err == nil {
+		defer file.Close()
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if line != "" && line[0] != '#' {
+				patterns = append(patterns, line)
 			}
 		}
-		// If it's not a directory, process it as a file
+	}
+	return ignore.CompileIgnoreLines(patterns...)
+}
+
+// GetCodeBase retrieves a list of files within the given root directory,
+// excluding files and directories based on ignore patterns.
+func GetCodeBase(root string) ([]File, error) {
+	files := []File{}
+	ignorer := createIgnorer()
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			// Error accessing file/directory
+			return err
+		}
+		// Check if the current path should be ignored
+		if ignorer.MatchesPath(path) {
+			if d.IsDir() {
+				// Skip entire directory and subdirectories
+				return filepath.SkipDir
+			}
+			// Skip individual file
+			return nil
+		}
+		// If we reach this point, the file/directory should not be ignored
 		if !d.IsDir() {
+			// Open the file
 			file, err := os.Open(path)
 			if err != nil {
 				return fmt.Errorf("error opening file %s: %v", path, err)
 			}
 			defer file.Close()
-			// Read file content
+			// Read the file content
 			content, err := io.ReadAll(file)
 			if err != nil {
 				return fmt.Errorf("error reading file %s: %v", path, err)
 			}
-			// Create and append File to slice
+			// Add the file to the list
 			files = append(files, File{
 				Name:    d.Name(),
 				Content: string(content),
@@ -77,7 +88,7 @@ func GetCodeBase(root string, ignoreFiles []string) []File {
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("Error walking the path %q: %v\n", root, err)
+		return nil, err
 	}
-	return files
+	return files, nil
 }

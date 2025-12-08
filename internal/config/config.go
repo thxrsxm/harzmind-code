@@ -1,86 +1,141 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
-	"gopkg.in/yaml.v3"
+	"github.com/thxrsxm/harzmind-code/internal"
 )
 
 type Config struct {
-	API     string   `yaml:"api"`
-	Model   string   `yaml:"model"`
-	Outfile bool     `yaml:"outfile"`
-	Ignore  []string `yaml:"ignore"`
+	CurrentAccountName string    `json:"currentAccount"`
+	Accounts           []Account `json:"accounts"`
 }
 
-// String implements the fmt.Stringer interface for the Config struct.
-func (c Config) String() string {
-	return fmt.Sprintf("API: %q\nModel: %q\nOutfile: %t\nIgnore: %v",
-		c.API,
-		c.Model,
-		c.Outfile,
-		c.Ignore)
+func (c *Config) GetAccount(name string) (*Account, error) {
+	if c.Accounts == nil {
+		return nil, fmt.Errorf("no accounts")
+	}
+	for _, v := range c.Accounts {
+		if v.Name == name {
+			return &v, nil
+		}
+	}
+	return nil, fmt.Errorf("account %s not found", name)
 }
 
-func LoadConfig(path string) (*Config, error) {
-	// Read the YAML file
-	yamlFile, err := os.Open(path)
-	if err != nil {
-		return nil, err
+func (c *Config) GetCurrentAccount() (*Account, error) {
+	if len(c.CurrentAccountName) == 0 {
+		return nil, fmt.Errorf("no current account")
 	}
-	defer yamlFile.Close()
-	// Read all content from the file
-	byteValue, err := io.ReadAll(yamlFile)
-	if err != nil {
-		return nil, err
-	}
-	// Unmarshal the YAML content into a Config struct
-	var config Config
-	err = yaml.Unmarshal(byteValue, &config)
-	if err != nil {
-		return nil, err
-	}
-	if len(config.API) == 0 {
-		return nil, fmt.Errorf("API field is empty")
-	}
-	if len(config.Model) == 0 {
-		return nil, fmt.Errorf("model field is empty")
-	}
-	return &config, nil
+	return c.GetAccount(c.CurrentAccountName)
 }
 
-func (c *Config) Save(path string) error {
-	yamlData, err := yaml.Marshal(c)
+func (c *Config) AddAccount(account Account) error {
+	if _, err := c.GetAccount(account.Name); err == nil {
+		return fmt.Errorf("account already exists")
+	}
+	c.Accounts = append(c.Accounts, account)
+	return nil
+}
+
+func (c *Config) RemoveAccount(name string) {
+	index := -1
+	for i, v := range c.Accounts {
+		if v.Name == name {
+			index = i
+			break
+		}
+	}
+	// Account not found
+	if index == -1 {
+		return
+	}
+	// Remove account
+	c.Accounts = append(c.Accounts[:index], c.Accounts[index+1:]...)
+}
+
+func (c *Config) SaveConfig(path string) error {
+	// Marshal the Config struct to JSON
+	jsonData, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, yamlData, 0644)
+	// Get binary path
+	binDir, err := internal.GetBinaryPath()
+	if err != nil {
+		return err
+	}
+	configPath := filepath.Join(binDir, path)
+	// Create or truncate the target file
+	jsonFile, err := os.Create(configPath)
+	if err != nil {
+		return err
+	}
+	defer jsonFile.Close()
+	// Write the JSON data to the file
+	_, err = jsonFile.Write(jsonData)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func LoadConfig(path string) (*Config, error) {
+	// Get binary path
+	binDir, err := internal.GetBinaryPath()
+	if err != nil {
+		return nil, err
+	}
+	configPath := filepath.Join(binDir, path)
+	// Read the JSON file
+	jsonFile, err := os.Open(configPath)
+	if err != nil {
+		return nil, err
+	}
+	defer jsonFile.Close()
+	// Read all content from the file
+	byteValue, err := io.ReadAll(jsonFile)
+	if err != nil {
+		return nil, err
+	}
+	// Unmarshal the JSON content into a Config struct
+	var config Config
+	err = json.Unmarshal(byteValue, &config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
 }
 
 func CreateConfig(path string) error {
 	// Create a new Config instance and populate it
 	config := Config{
-		API:   "https://api.openai.com/v1",
-		Model: "gpt-4o",
-		Ignore: []string{
-			"hzmind",
-		},
+		CurrentAccountName: "",
+		Accounts:           []Account{},
 	}
-	// Marshal the Config struct to YAML
-	yamlData, err := yaml.Marshal(&config)
+	// Marshal the Config struct to JSON
+	jsonData, err := json.MarshalIndent(&config, "", "  ")
 	if err != nil {
 		return err
 	}
+	// Get binary path
+	binDir, err := internal.GetBinaryPath()
+	if err != nil {
+		return err
+	}
+	configPath := filepath.Join(binDir, path)
 	// Create or truncate the target file
-	yamlFile, err := os.Create(path)
+	jsonFile, err := os.Create(configPath)
 	if err != nil {
 		return err
 	}
-	defer yamlFile.Close()
-	// Write the YAML data to the file
-	_, err = yamlFile.Write(yamlData)
+	defer jsonFile.Close()
+	// Write the JSON data to the file
+	_, err = jsonFile.Write(jsonData)
 	if err != nil {
 		return err
 	}

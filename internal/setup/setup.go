@@ -1,50 +1,46 @@
 package setup
 
 import (
-	"fmt"
 	"os"
+	"path/filepath"
 
-	"github.com/joho/godotenv"
 	"github.com/thxrsxm/harzmind-code/internal"
 	"github.com/thxrsxm/harzmind-code/internal/config"
 )
 
-func Setup() (string, error) {
-	// Load .env file variables
-	_ = godotenv.Load()
-	// Load API token
-	apiToken := os.Getenv(internal.API_TOKEN_NAME)
-	if len(apiToken) == 0 {
-		return "", fmt.Errorf("API token is missing (%s)", internal.API_TOKEN_NAME)
+func SetupConfigFile() error {
+	// Get binary path
+	binDir, err := internal.GetBinaryPath()
+	if err != nil {
+		return err
 	}
-	return apiToken, nil
-}
-
-func SetupWorkingDir() error {
-	// Check hzmind directory not exists
-	if _, err := os.Stat(internal.DIR_MAIN); os.IsNotExist(err) {
-		// Create hzmind directory
-		err := os.Mkdir(internal.DIR_MAIN, 0755)
-		if err != nil {
-			return err
-		}
-	}
+	configPath := filepath.Join(binDir, internal.PATH_FILE_CONFIG)
 	// Check config file not exists
-	if _, err := os.Stat(internal.PATH_FILE_CONFIG); os.IsNotExist(err) {
-		// Create config file
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		// Create new config file
 		err := config.CreateConfig(internal.PATH_FILE_CONFIG)
 		if err != nil {
 			return nil
 		}
 	}
-	// Check HZMIND.md not exists
-	if _, err := os.Stat(internal.PATH_FILE_README); os.IsNotExist(err) {
-		// Create HZMIND.md
-		readme, err := os.Create(internal.PATH_FILE_README)
-		if err != nil {
-			return err
-		}
-		defer readme.Close()
+	return nil
+}
+
+func SetupProjectDir() error {
+	// Create hzmind directory
+	err := internal.CreateDirIfNotExists(internal.DIR_MAIN)
+	if err != nil {
+		return err
+	}
+	// Check HZMIND.md file
+	err = internal.CreateFileIfNotExists(internal.PATH_FILE_README)
+	if err != nil {
+		return err
+	}
+	// Check .hzmignore file
+	err = internal.CreateFileIfNotExists(internal.PATH_FILE_IGNORE)
+	if err != nil {
+		return err
 	}
 	return nil
 }
