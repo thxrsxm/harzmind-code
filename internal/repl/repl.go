@@ -7,7 +7,9 @@ import (
 	"os"
 	"strings"
 	"syscall"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/thxrsxm/harzmind-code/internal"
 	"github.com/thxrsxm/harzmind-code/internal/api"
 	"github.com/thxrsxm/harzmind-code/internal/codebase"
@@ -82,13 +84,21 @@ func (r *REPL) handleUserMessage(msg string) (string, error) {
 		Content: msg,
 	}
 	r.messages = append(r.messages, userMsg)
-	// Send API-Request
+	// Get current account
 	account, err := r.config.GetCurrentAccount()
 	if err != nil {
 		return "", err
 	}
+	// Initialize and start the spinner for visual feedback
+	// Use a dot spinner style
+	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	// Start spinning in a goroutine
+	s.Start()
+	s.Suffix = " Sending codebase and querying LLM..."
 	// TODO check account members before send the request
 	resp, err := api.SendMessage(account.ApiUrl, account.Model, account.ApiKey, r.messages)
+	// Stop the spinner after the call completes
+	s.Stop()
 	if err != nil {
 		// Remove last message from messages (user message)
 		if len(r.messages) >= 1 {
