@@ -71,6 +71,14 @@ func NewOutput(outPath string, writeToFile bool) (*Output, error) {
 	return o, nil
 }
 
+func (o *Output) CloseOutput() {
+	for _, v := range o.writer {
+		if closer, ok := v.writer.(io.Closer); ok {
+			closer.Close()
+		}
+	}
+}
+
 func (o *Output) Print(a ...any) {
 	for _, v := range o.writer {
 		v.Print(a...)

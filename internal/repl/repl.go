@@ -54,10 +54,6 @@ func NewREPL(outputFile bool) (*REPL, error) {
 	return r, nil
 }
 
-func (r *REPL) AddCommand(command *CMD) {
-	r.commands = append(r.commands, *command)
-}
-
 func (r *REPL) handleUserMessage(msg string) (string, error) {
 	// Get code base
 	files, err := codebase.GetCodeBase(".")
@@ -71,7 +67,7 @@ func (r *REPL) handleUserMessage(msg string) (string, error) {
 	// Load HZMIND.md
 	data, err := os.ReadFile(internal.PATH_FILE_README)
 	if err != nil {
-		r.out.PrintWarning("no HZMIND.md file!")
+		return "", fmt.Errorf("no HZMIND.md file found")
 	}
 	// Overwrite System Prompt message
 	sysprompt := string(data) + "\n\n## Codebase\n\n" + string(jsonCodeBase)
@@ -140,6 +136,10 @@ func (r *REPL) readPassword() (string, error) {
 	return string(bytePassword), nil
 }
 
+func (r *REPL) AddCommand(command *CMD) {
+	r.commands = append(r.commands, *command)
+}
+
 func (r *REPL) HandleCommand(command string, args []string) error {
 	for _, v := range r.commands {
 		if command == v.name {
@@ -160,12 +160,20 @@ func (r *REPL) Run() {
 		r.out.Printf("\nSuccessfully logged in to %s\n", account.Name)
 		rnbw.ResetColor()
 	}
+	// Graceful cleanup
+	defer func() {
+		r.out.CloseOutput()
+	}()
 	for r.running {
 		rnbw.ResetColor()
 		r.out.Println()
+		// Show no account warning
 		if _, err := r.config.GetCurrentAccount(); err != nil {
-			r.out.PrintlnWarning("no account")
-			r.out.Println()
+			r.out.PrintfWarning("no account\n\n")
+		}
+		// Show no ignore file warning
+		if !codebase.IgnoreFileExists() {
+			r.out.PrintfWarning("no %s file", internal.FILE_IGNORE)
 		}
 		rnbw.ForgroundColor(rnbw.Yellow)
 		r.out.Print("> ")

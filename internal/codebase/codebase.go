@@ -46,6 +46,10 @@ func createIgnorer() *ignore.GitIgnore {
 	return ignore.CompileIgnoreLines(patterns...)
 }
 
+func IgnoreFileExists() bool {
+	return internal.FileExists(internal.PATH_FILE_IGNORE)
+}
+
 // GetCodeBase retrieves a list of files within the given root directory,
 // excluding files and directories based on ignore patterns.
 func GetCodeBase(root string) ([]File, error) {
@@ -88,7 +92,7 @@ func GetCodeBase(root string) ([]File, error) {
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error walking directory: %w", err)
 	}
 	return files, nil
 }

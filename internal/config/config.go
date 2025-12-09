@@ -35,8 +35,9 @@ func (c *Config) GetCurrentAccount() (*Account, error) {
 }
 
 func (c *Config) AddAccount(account Account) error {
+	// Check for existing account to prevent duplicates
 	if _, err := c.GetAccount(account.Name); err == nil {
-		return fmt.Errorf("account already exists")
+		return fmt.Errorf("account %s already exists", account.Name)
 	}
 	c.Accounts = append(c.Accounts, account)
 	return nil

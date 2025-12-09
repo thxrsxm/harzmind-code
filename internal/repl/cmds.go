@@ -68,14 +68,6 @@ func addAllCommands(r *REPL) {
 		"Show info",
 		infoCMD,
 	))
-	/*
-		// /config
-		r.AddCommand(NewCMD(
-			"config",
-			"Show config",
-			configCMD,
-		))
-	*/
 	// /acc
 	r.AddCommand(NewCMD(
 		"acc",
@@ -105,6 +97,7 @@ func helpCMD(r *REPL, args []string) error {
 
 func exitCMD(r *REPL, args []string) error {
 	r.running = false
+	r.out.CloseOutput()
 	return nil
 }
 
@@ -172,6 +165,7 @@ func accCMD(r *REPL, args []string) error {
 			r.out.Println(v)
 			r.out.Println()
 		}
+		return nil
 	} else if len(args) == 1 {
 		switch args[0] {
 		case "new":
@@ -180,10 +174,16 @@ func accCMD(r *REPL, args []string) error {
 				return err
 			}
 			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+		default:
+			return fmt.Errorf("command not found")
 		}
 	} else if len(args) == 2 {
+		if len(args[1]) == 0 {
+			return fmt.Errorf("argument is missing")
+		}
 		switch args[0] {
 		case "login":
+			// Login
 			if _, err := r.config.GetAccount(args[1]); err != nil {
 				return err
 			}
@@ -193,20 +193,25 @@ func accCMD(r *REPL, args []string) error {
 			rnbw.ResetColor()
 			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
 		case "logout":
+			// Logout
 			r.config.CurrentAccountName = ""
 			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
 		case "remove":
+			// Remove account
 			r.config.RemoveAccount(args[1])
 			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
 		case "info":
+			// Show account info
 			account, err := r.config.GetAccount(args[1])
 			if err != nil {
 				return err
 			}
 			r.out.Println(account)
+		default:
+			return fmt.Errorf("command not found")
 		}
 	}
-	return nil
+	return fmt.Errorf("command not found")
 }
 
 func modelCMD(r *REPL, args []string) error {
@@ -219,63 +224,11 @@ func modelCMD(r *REPL, args []string) error {
 	}
 	account.Model = args[0]
 	r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+	rnbw.ForgroundColor(rnbw.Green)
 	r.out.Printf("Successfully changed model to %s for account %s\n", args[0], r.config.CurrentAccountName)
+	rnbw.ResetColor()
 	return nil
 }
-
-/*
-func configCMD(r *REPL, args []string) error {
-	if r.config == nil {
-		return fmt.Errorf("config is missing")
-	}
-	if len(args) == 0 {
-		r.out.Println(r.config.String())
-	} else if len(args) == 1 {
-		switch args[0] {
-		case "model":
-			r.out.Println(r.config.Model)
-		case "api":
-			r.out.Println(r.config.API)
-		case "outfile":
-			r.out.Println(r.config.Outfile)
-		case "reload":
-			config, err := config.LoadConfig(internal.PATH_FILE_CONFIG)
-			if err != nil {
-				return err
-			}
-			r.config = config
-			rnbw.ForgroundColor(rnbw.Green)
-			r.out.Println("Config successfully reloaded")
-			rnbw.ResetColor()
-		}
-	} else if len(args) == 2 {
-		switch args[0] {
-		case "model":
-			r.config.Model = args[1]
-		case "api":
-			r.config.API = args[1]
-		case "outfile":
-			switch args[1] {
-			case "true":
-				r.config.Outfile = true
-			case "false":
-				r.config.Outfile = false
-			default:
-				return fmt.Errorf("format is wrong (only true/false)")
-			}
-		}
-		// Save config changes
-		err := r.config.Save(internal.PATH_FILE_CONFIG)
-		if err == nil {
-			rnbw.ForgroundColor(rnbw.Green)
-			r.out.Println("Config successfully updated")
-			rnbw.ResetColor()
-		}
-		return err
-	}
-	return nil
-}
-*/
 
 func editorCMD(r *REPL, args []string) error {
 	if len(args) == 1 {

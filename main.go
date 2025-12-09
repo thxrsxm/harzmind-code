@@ -8,11 +8,17 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal/args"
 	"github.com/thxrsxm/harzmind-code/internal/repl"
 	"github.com/thxrsxm/harzmind-code/internal/setup"
+	"github.com/thxrsxm/rnbw"
 )
 
 func main() {
 	// Setup config file
-	setup.SetupConfigFile()
+	if err := setup.SetupConfigFile(); err != nil {
+		rnbw.ForgroundColor(rnbw.Red)
+		fmt.Fprintf(os.Stderr, "[ERROR] setting up config file: %v\n", err)
+		rnbw.ResetColor()
+		os.Exit(1)
+	}
 	// Parse command line flags
 	args.Parse()
 	// Show help
