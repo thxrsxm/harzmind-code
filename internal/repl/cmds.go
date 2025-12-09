@@ -1,3 +1,4 @@
+// Package repl provides a Read-Eval-Print Loop (REPL) for the HarzMind Code application.
 package repl
 
 import (
@@ -11,12 +12,14 @@ import (
 	"github.com/thxrsxm/rnbw"
 )
 
+// CMD represents a command that can be executed in the REPL.
 type CMD struct {
 	name    string
 	info    string
 	command func(r *REPL, args []string) error
 }
 
+// NewCMD creates a new command instance.
 func NewCMD(name, info string, command func(r *REPL, args []string) error) *CMD {
 	return &CMD{
 		name:    name,
@@ -25,6 +28,7 @@ func NewCMD(name, info string, command func(r *REPL, args []string) error) *CMD 
 	}
 }
 
+// addAllCommands adds all available commands to the REPL.
 func addAllCommands(r *REPL) {
 	// /help
 	r.AddCommand(NewCMD(
@@ -88,6 +92,7 @@ func addAllCommands(r *REPL) {
 	))
 }
 
+// helpCMD displays help information for all commands.
 func helpCMD(r *REPL, args []string) error {
 	for _, v := range r.commands {
 		r.out.Printf("'/%s' - %s\n", v.name, v.info)
@@ -95,12 +100,14 @@ func helpCMD(r *REPL, args []string) error {
 	return nil
 }
 
+// exitCMD exits the REPL.
 func exitCMD(r *REPL, args []string) error {
 	r.running = false
 	r.out.CloseOutput()
 	return nil
 }
 
+// initCMD initializes a new project.
 func initCMD(r *REPL, args []string) error {
 	err := setup.SetupProjectDir()
 	if err != nil {
@@ -112,12 +119,14 @@ func initCMD(r *REPL, args []string) error {
 	return nil
 }
 
+// forgetCMD clears the session context.
 func forgetCMD(r *REPL, args []string) error {
 	r.messages = []api.Message{}
 	r.messages = append(r.messages, api.Message{Role: "system", Content: ""})
 	return nil
 }
 
+// modelsCMD lists all available models.
 func modelsCMD(r *REPL, args []string) error {
 	account, err := r.config.GetCurrentAccount()
 	if err != nil {
@@ -133,6 +142,7 @@ func modelsCMD(r *REPL, args []string) error {
 	return nil
 }
 
+// bashCMD runs a bash command.
 func bashCMD(r *REPL, args []string) error {
 	var sb strings.Builder
 	for i, v := range args {
@@ -149,6 +159,7 @@ func bashCMD(r *REPL, args []string) error {
 	return nil
 }
 
+// infoCMD displays information about the HarzMind Code application.
 func infoCMD(r *REPL, args []string) error {
 	rnbw.ForgroundColor(rnbw.Green)
 	r.out.Print("HarzMind Code")
@@ -158,6 +169,7 @@ func infoCMD(r *REPL, args []string) error {
 	return nil
 }
 
+// accCMD manages accounts.
 func accCMD(r *REPL, args []string) error {
 	if len(args) == 0 {
 		// Show all accounts
@@ -214,6 +226,7 @@ func accCMD(r *REPL, args []string) error {
 	return fmt.Errorf("command not found")
 }
 
+// modelCMD changes the model for the current account.
 func modelCMD(r *REPL, args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("wrong format")
@@ -230,6 +243,7 @@ func modelCMD(r *REPL, args []string) error {
 	return nil
 }
 
+// editorCMD opens the CLI editor.
 func editorCMD(r *REPL, args []string) error {
 	if len(args) == 1 {
 		return executor.OpenEditor(args[0], "")

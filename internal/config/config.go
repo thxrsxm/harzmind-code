@@ -1,3 +1,4 @@
+// Package config provides functionality for handling accounts.
 package config
 
 import (
@@ -10,11 +11,13 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal"
 )
 
+// Config represents the configuration file structure.
 type Config struct {
 	CurrentAccountName string    `json:"currentAccount"`
 	Accounts           []Account `json:"accounts"`
 }
 
+// GetAccount retrieves an account by name.
 func (c *Config) GetAccount(name string) (*Account, error) {
 	if c.Accounts == nil {
 		return nil, fmt.Errorf("no accounts")
@@ -27,6 +30,7 @@ func (c *Config) GetAccount(name string) (*Account, error) {
 	return nil, fmt.Errorf("account %s not found", name)
 }
 
+// GetCurrentAccount retrieves the currently active account.
 func (c *Config) GetCurrentAccount() (*Account, error) {
 	if len(c.CurrentAccountName) == 0 {
 		return nil, fmt.Errorf("no current account")
@@ -34,6 +38,7 @@ func (c *Config) GetCurrentAccount() (*Account, error) {
 	return c.GetAccount(c.CurrentAccountName)
 }
 
+// AddAccount adds a new account to the configuration.
 func (c *Config) AddAccount(account Account) error {
 	// Check for existing account to prevent duplicates
 	if _, err := c.GetAccount(account.Name); err == nil {
@@ -43,6 +48,7 @@ func (c *Config) AddAccount(account Account) error {
 	return nil
 }
 
+// RemoveAccount removes an account by name.
 func (c *Config) RemoveAccount(name string) {
 	index := -1
 	for i, v := range c.Accounts {
@@ -59,6 +65,7 @@ func (c *Config) RemoveAccount(name string) {
 	c.Accounts = append(c.Accounts[:index], c.Accounts[index+1:]...)
 }
 
+// SaveConfig saves the configuration to a file.
 func (c *Config) SaveConfig(path string) error {
 	// Marshal the Config struct to JSON
 	jsonData, err := json.MarshalIndent(c, "", "  ")
@@ -85,6 +92,7 @@ func (c *Config) SaveConfig(path string) error {
 	return nil
 }
 
+// LoadConfig loads the configuration from a file.
 func LoadConfig(path string) (*Config, error) {
 	// Get binary path
 	binDir, err := internal.GetBinaryPath()
@@ -112,6 +120,7 @@ func LoadConfig(path string) (*Config, error) {
 	return &config, nil
 }
 
+// CreateConfig creates a new configuration file.
 func CreateConfig(path string) error {
 	// Create a new Config instance and populate it
 	config := Config{

@@ -1,3 +1,4 @@
+// Package setup provides functionality for setting up the project directory and configuration file.
 package setup
 
 import (
@@ -8,6 +9,8 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal/config"
 )
 
+// SetupConfigFile sets up the configuration file.
+// It checks if the configuration file exists, and if not, creates a new one.
 func SetupConfigFile() error {
 	// Get binary path
 	binDir, err := internal.GetBinaryPath()
@@ -26,6 +29,8 @@ func SetupConfigFile() error {
 	return nil
 }
 
+// SetupProjectDir sets up the project directory.
+// It creates the main directory, README file, and ignore file if they do not exist.
 func SetupProjectDir() error {
 	// Create hzmind directory
 	err := internal.CreateDirIfNotExists(internal.DIR_MAIN)

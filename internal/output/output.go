@@ -1,3 +1,4 @@
+// Package output provides functionality for handling output.
 package output
 
 import (
@@ -9,14 +10,17 @@ import (
 	"github.com/thxrsxm/rnbw"
 )
 
+// OutputWriter represents a writer for output.
 type OutputWriter struct {
 	writer io.Writer
 }
 
+// NewOutputWriter creates a new OutputWriter instance.
 func NewOutputWriter(writer io.Writer) *OutputWriter {
 	return &OutputWriter{writer: writer}
 }
 
+// Print writes the given arguments to the output writer.
 func (w *OutputWriter) Print(a ...any) {
 	if w.writer == nil {
 		return
@@ -24,6 +28,7 @@ func (w *OutputWriter) Print(a ...any) {
 	fmt.Fprint(w.writer, a...)
 }
 
+// Println writes the given arguments to the output writer followed by a newline.
 func (w *OutputWriter) Println(a ...any) {
 	if w.writer == nil {
 		return
@@ -31,6 +36,7 @@ func (w *OutputWriter) Println(a ...any) {
 	fmt.Fprintln(w.writer, a...)
 }
 
+// Printf writes a formatted string to the output writer.
 func (w *OutputWriter) Printf(format string, a ...any) {
 	if w.writer == nil {
 		return
@@ -38,12 +44,14 @@ func (w *OutputWriter) Printf(format string, a ...any) {
 	fmt.Fprintf(w.writer, format, a...)
 }
 
+// Output represents a collection of output writers.
 type Output struct {
 	writer []OutputWriter
 	Stdout *OutputWriter
 	File   *OutputWriter
 }
 
+// NewOutput creates a new Output instance.
 func NewOutput(outPath string, writeToFile bool) (*Output, error) {
 	o := &Output{writer: []OutputWriter{}}
 	// Add stdout writer to output
@@ -71,6 +79,7 @@ func NewOutput(outPath string, writeToFile bool) (*Output, error) {
 	return o, nil
 }
 
+// CloseOutput closes all output writers.
 func (o *Output) CloseOutput() {
 	for _, v := range o.writer {
 		if closer, ok := v.writer.(io.Closer); ok {
@@ -79,24 +88,28 @@ func (o *Output) CloseOutput() {
 	}
 }
 
+// Print writes the given arguments to all output writers.
 func (o *Output) Print(a ...any) {
 	for _, v := range o.writer {
 		v.Print(a...)
 	}
 }
 
+// Println writes the given arguments to all output writers followed by a newline.
 func (o *Output) Println(a ...any) {
 	for _, v := range o.writer {
 		v.Println(a...)
 	}
 }
 
+// Printf writes a formatted string to all output writers.
 func (o *Output) Printf(format string, a ...any) {
 	for _, v := range o.writer {
 		v.Printf(format, a...)
 	}
 }
 
+// PrintWarning prints a warning message.
 func (o *Output) PrintWarning(a ...any) {
 	rnbw.ForgroundColor(rnbw.Yellow)
 	o.Print("[WARNING] ")
@@ -104,6 +117,7 @@ func (o *Output) PrintWarning(a ...any) {
 	rnbw.ResetColor()
 }
 
+// PrintlnWarning prints a warning message followed by a newline.
 func (o *Output) PrintlnWarning(a ...any) {
 	rnbw.ForgroundColor(rnbw.Yellow)
 	o.Print("[WARNING] ")
@@ -111,6 +125,7 @@ func (o *Output) PrintlnWarning(a ...any) {
 	rnbw.ResetColor()
 }
 
+// PrintfWarning prints a warning message with a formatted string.
 func (o *Output) PrintfWarning(format string, a ...any) {
 	rnbw.ForgroundColor(rnbw.Yellow)
 	o.Print("[WARNING] ")
@@ -118,6 +133,7 @@ func (o *Output) PrintfWarning(format string, a ...any) {
 	rnbw.ResetColor()
 }
 
+// PrintError prints an error message.
 func (o *Output) PrintError(a ...any) {
 	rnbw.ForgroundColor(rnbw.Red)
 	o.Print("[ERROR] ")
@@ -125,6 +141,7 @@ func (o *Output) PrintError(a ...any) {
 	rnbw.ResetColor()
 }
 
+// PrintlnError prints an error message followed by a newline.
 func (o *Output) PrintlnError(a ...any) {
 	rnbw.ForgroundColor(rnbw.Red)
 	o.Print("[ERROR] ")
@@ -132,6 +149,7 @@ func (o *Output) PrintlnError(a ...any) {
 	rnbw.ResetColor()
 }
 
+// PrintlnError prints an error message followed by a newline.
 func (o *Output) PrintfError(format string, a ...any) {
 	rnbw.ForgroundColor(rnbw.Red)
 	o.Print("[ERROR] ")

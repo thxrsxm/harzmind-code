@@ -31,13 +31,16 @@ func (f File) String() string {
 // createIgnorer creates a new ignore compiler based on the ignore patterns.
 // It also reads additional ignore patterns from a .hzmignore file if it exists.
 func createIgnorer() *ignore.GitIgnore {
+	// Start with predefined ignore patterns
 	patterns := make([]string, len(ignorePatterns))
 	copy(patterns, ignorePatterns)
+	// Check if .hzmignore file exists and add its patterns
 	if file, err := os.Open(internal.PATH_FILE_IGNORE); err == nil {
 		defer file.Close()
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			line := scanner.Text()
+			// Ignore empty lines and comments
 			if line != "" && line[0] != '#' {
 				patterns = append(patterns, line)
 			}
@@ -46,6 +49,7 @@ func createIgnorer() *ignore.GitIgnore {
 	return ignore.CompileIgnoreLines(patterns...)
 }
 
+// IgnoreFileExists checks if the .hzmignore file exists.
 func IgnoreFileExists() bool {
 	return internal.FileExists(internal.PATH_FILE_IGNORE)
 }
@@ -55,6 +59,7 @@ func IgnoreFileExists() bool {
 func GetCodeBase(root string) ([]File, error) {
 	files := []File{}
 	ignorer := createIgnorer()
+	// Walk through the directory tree
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			// Error accessing file/directory

@@ -1,3 +1,4 @@
+// Package repl provides a Read-Eval-Print Loop (REPL) for the HarzMind Code application.
 package repl
 
 import (
@@ -8,6 +9,9 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal/config"
 )
 
+// handleAccountCreation handles the creation of a new account.
+// It prompts the user for account details and validates the input.
+// If successful, it adds the new account to the configuration and saves it.
 func (r *REPL) handleAccountCreation() error {
 	r.out.Println("Create account")
 	// Get account name

@@ -1,3 +1,4 @@
+// Package executor provides functionality for executing system commands and opening files in an editor.
 package executor
 
 import (
@@ -6,12 +7,16 @@ import (
 	"os/exec"
 )
 
+// ExecuteBash executes a bash command and returns the output and error.
 func ExecuteBash(command string) (string, error) {
+	// Create a new bash command with the given command string
 	cmd := exec.Command("bash", "-c", command)
+	// Run the command and capture the output
 	output, err := cmd.CombinedOutput()
 	return string(output), err
 }
 
+// OpenEditor opens a file in the specified editor.
 func OpenEditor(editor, fileName string) error {
 	// Check if editor binary exists
 	if _, err := exec.LookPath(editor); err != nil {

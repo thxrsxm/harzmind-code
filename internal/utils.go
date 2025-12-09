@@ -1,3 +1,4 @@
+// Package internal provides various internal functions and constants.
 package internal
 
 import (
@@ -6,6 +7,7 @@ import (
 	"regexp"
 )
 
+// GetBinaryPath returns the path of the binary executable.
 func GetBinaryPath() (string, error) {
 	exePath, err := os.Executable()
 	if err != nil {
@@ -14,6 +16,7 @@ func GetBinaryPath() (string, error) {
 	return filepath.Dir(exePath), nil
 }
 
+// CreateFileIfNotExists creates a file if it does not exist.
 func CreateFileIfNotExists(path string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		file, err := os.Create(path)
@@ -25,6 +28,7 @@ func CreateFileIfNotExists(path string) error {
 	return nil
 }
 
+// CreateDirIfNotExists creates a directory if it does not exist.
 func CreateDirIfNotExists(path string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.Mkdir(path, 0755)
@@ -35,6 +39,7 @@ func CreateDirIfNotExists(path string) error {
 	return nil
 }
 
+// FileExists checks if a file exists.
 func FileExists(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
@@ -42,6 +47,7 @@ func FileExists(path string) bool {
 	return true
 }
 
+// IsValidURL checks if a URL is valid.
 func IsValidURL(url string) bool {
 	// Regular expression to validate URL
 	re := regexp.MustCompile(`^https?://[a-zA-Z0-9-\.]+\.[a-zA-Z]{2,}(\/.*)?$`)

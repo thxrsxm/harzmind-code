@@ -1,3 +1,4 @@
+// Package repl provides a Read-Eval-Print Loop (REPL) for the HarzMind Code application.
 package repl
 
 import (
@@ -19,6 +20,7 @@ import (
 	"golang.org/x/term"
 )
 
+// REPL represents a Read-Eval-Print Loop for the HarzMind Code application.
 type REPL struct {
 	running  bool
 	out      *output.Output
@@ -28,6 +30,8 @@ type REPL struct {
 	messages []api.Message
 }
 
+// NewREPL creates a new REPL instance.
+// If outputFile is true, it will write output to a file.
 func NewREPL(outputFile bool) (*REPL, error) {
 	r := &REPL{
 		running:  false,
@@ -49,13 +53,12 @@ func NewREPL(outputFile bool) (*REPL, error) {
 	r.out = o
 	// Add commands
 	addAllCommands(r)
-	// DEBUG
-	// Load API token
-	//apiToken := os.Getenv("HARZMIND_API_TOKEN")
-	//r.account = config.NewAccount("test", "https://api.mammouth.ai/v1/chat/completions", apiToken, "grok-3-mini")
 	return r, nil
 }
 
+// handleUserMessage processes a user's message.
+// It retrieves the codebase, constructs a system prompt,
+// adds the user's message, and sends it to the API for processing.
 func (r *REPL) handleUserMessage(msg string) (string, error) {
 	// Get code base
 	files, err := codebase.GetCodeBase(".")
@@ -113,6 +116,7 @@ func (r *REPL) handleUserMessage(msg string) (string, error) {
 	return resp, nil
 }
 
+// printTitle displays the HarzMind Code title and help message.
 func (r *REPL) printTitle() {
 	fmt.Printf("\n\nWelcome to %s!\n\n\n", rnbw.String(rnbw.Green, "HarzMind Code"))
 	rnbw.ForgroundColor(rnbw.Green)
@@ -122,6 +126,8 @@ func (r *REPL) printTitle() {
 	helpCMD(r, nil)
 }
 
+// readInput reads a line of input from the user.
+// It also writes the input to the output file if available.
 func (r *REPL) readInput() (string, error) {
 	input, err := r.reader.ReadString('\n')
 	// Write user input to output file
@@ -136,6 +142,7 @@ func (r *REPL) readInput() (string, error) {
 	return input, nil
 }
 
+// readPassword reads a password from the user securely.
 func (r *REPL) readPassword() (string, error) {
 	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {
@@ -145,10 +152,13 @@ func (r *REPL) readPassword() (string, error) {
 	return string(bytePassword), nil
 }
 
+// AddCommand adds a new command to the REPL.
 func (r *REPL) AddCommand(command *CMD) {
 	r.commands = append(r.commands, *command)
 }
 
+// HandleCommand handles a slash command.
+// It searches for a matching command and executes it.
 func (r *REPL) HandleCommand(command string, args []string) error {
 	for _, v := range r.commands {
 		if command == v.name {
@@ -158,6 +168,7 @@ func (r *REPL) HandleCommand(command string, args []string) error {
 	return fmt.Errorf("unknown command")
 }
 
+// Run starts the REPL event loop.
 func (r *REPL) Run() {
 	r.running = true
 	r.printTitle()
