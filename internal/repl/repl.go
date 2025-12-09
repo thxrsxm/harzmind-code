@@ -95,7 +95,6 @@ func (r *REPL) handleUserMessage(msg string) (string, error) {
 	// Start spinning in a goroutine
 	s.Start()
 	s.Suffix = " Sending codebase and querying LLM..."
-	// TODO check account members before send the request
 	resp, err := api.SendMessage(account.ApiUrl, account.Model, account.ApiKey, r.messages)
 	// Stop the spinner after the call completes
 	s.Stop()

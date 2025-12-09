@@ -36,6 +36,15 @@ type ModelsResponse struct {
 }
 
 func SendMessage(url, model, token string, messages []Message) (string, error) {
+	if len(url) == 0 {
+		return "", fmt.Errorf("url is not valid")
+	}
+	if len(model) == 0 {
+		return "", fmt.Errorf("model is not valid")
+	}
+	if len(token) == 0 {
+		return "", fmt.Errorf("API token is not valid")
+	}
 	reqBody := ChatRequest{
 		Model:    model,
 		Messages: messages,
