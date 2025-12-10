@@ -3,6 +3,7 @@ package repl
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/thxrsxm/harzmind-code/internal"
@@ -90,6 +91,10 @@ func addAllCommands(r *REPL) {
 		"Change model",
 		modelCMD,
 	))
+	// Sort commands
+	sort.Slice(r.commands, func(i, j int) bool {
+		return r.commands[i].name < r.commands[j].name
+	})
 }
 
 // helpCMD displays help information for all commands.
