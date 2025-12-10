@@ -236,7 +236,10 @@ func modelCMD(r *REPL, args []string) error {
 		return err
 	}
 	account.Model = args[0]
-	r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+	err = r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+	if err != nil {
+		return err
+	}
 	rnbw.ForgroundColor(rnbw.Green)
 	r.out.Printf("Successfully changed model to %s for account %s\n", args[0], r.config.CurrentAccountName)
 	rnbw.ResetColor()

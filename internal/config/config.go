@@ -22,9 +22,9 @@ func (c *Config) GetAccount(name string) (*Account, error) {
 	if c.Accounts == nil {
 		return nil, fmt.Errorf("no accounts")
 	}
-	for _, v := range c.Accounts {
-		if v.Name == name {
-			return &v, nil
+	for i := range c.Accounts {
+		if c.Accounts[i].Name == name {
+			return &c.Accounts[i], nil
 		}
 	}
 	return nil, fmt.Errorf("account %s not found", name)
