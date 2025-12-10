@@ -173,9 +173,11 @@ func infoCMD(r *REPL, args []string) error {
 func accCMD(r *REPL, args []string) error {
 	if len(args) == 0 {
 		// Show all accounts
-		for _, v := range r.config.Accounts {
+		for i, v := range r.config.Accounts {
 			r.out.Println(v)
-			r.out.Println()
+			if i < len(r.config.Accounts)-1 {
+				r.out.Println()
+			}
 		}
 		return nil
 	} else if len(args) == 1 {
@@ -201,7 +203,7 @@ func accCMD(r *REPL, args []string) error {
 			}
 			r.config.CurrentAccountName = args[1]
 			rnbw.ForgroundColor(rnbw.Green)
-			r.out.Printf("Successfully logged in to %s\n", args[1])
+			r.out.Printf("Successfully logged in to '%s'\n", args[1])
 			rnbw.ResetColor()
 			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
 		case "logout":
@@ -241,7 +243,7 @@ func modelCMD(r *REPL, args []string) error {
 		return err
 	}
 	rnbw.ForgroundColor(rnbw.Green)
-	r.out.Printf("Successfully changed model to %s for account %s\n", args[0], r.config.CurrentAccountName)
+	r.out.Printf("Successfully changed model to '%s' for account '%s'\n", args[0], r.config.CurrentAccountName)
 	rnbw.ResetColor()
 	return nil
 }
