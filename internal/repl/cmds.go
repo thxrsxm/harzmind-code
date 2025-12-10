@@ -100,7 +100,10 @@ func addAllCommands(r *REPL) {
 // helpCMD displays help information for all commands.
 func helpCMD(r *REPL, args []string) error {
 	for _, v := range r.commands {
-		r.out.Printf("'/%s' - %s\n", v.name, v.info)
+		r.out.Printf("'/%s' ", v.name)
+		rnbw.ForgroundColor(rnbw.Gray)
+		r.out.Printf("- %s\n", v.info)
+		rnbw.ResetColor()
 	}
 	return nil
 }
