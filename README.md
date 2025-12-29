@@ -58,13 +58,26 @@ To start using HarzMind Code in your project, follow these steps:
 5. **Add your API Account:**
    The first time you run the tool, you won't have an account configured. Use the `/acc new` command to add one. You will be prompted for a name, your API URL, and your API Key.
 
+   **OpenAI example:**
+
    ```
    > /acc new
    Create account
-   Name: my-openai
+   Name: openai
    API Url: https://api.openai.com/v1/chat/completions
    API Token: [your token will be hidden]
    Model (optional): gpt-4-turbo
+   ```
+
+   **Ollama example:**
+
+   ```
+   > /acc new
+   Create account
+   Name: ollama
+   API Url: http://localhost:11434/v1/chat/completions
+   API Token: ollama
+   Model (optional): llama3.2:3b
    ```
 
 6. **Login to your account** and start chatting!
