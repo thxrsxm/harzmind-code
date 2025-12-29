@@ -72,7 +72,8 @@ func (r *REPL) handleUserMessage(msg string) (string, error) {
 	// Load HZMIND.md
 	data, err := os.ReadFile(internal.PATH_FILE_README)
 	if err != nil {
-		return "", fmt.Errorf("no HZMIND.md file found")
+		r.out.PrintfWarning("no %s file\n\n", internal.FILE_IGNORE)
+		data = []byte{}
 	}
 	// Overwrite System Prompt message
 	sysprompt := string(data) + "\n\n## Codebase\n\n" + string(jsonCodeBase)
@@ -193,9 +194,9 @@ func (r *REPL) Run() {
 		}
 		// Show no ignore file warning
 		if !codebase.IgnoreFileExists() {
-			r.out.PrintfWarning("no %s file", internal.FILE_IGNORE)
+			r.out.PrintfWarning("no %s file\n\n", internal.FILE_IGNORE)
 		}
-		rnbw.ForgroundColor(rnbw.Yellow)
+		rnbw.ForgroundColor(rnbw.Green)
 		r.out.Print("> ")
 		rnbw.ResetColor()
 		input, err := r.readInput()
