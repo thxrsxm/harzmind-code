@@ -50,6 +50,6 @@ func FileExists(path string) bool {
 // IsValidURL checks if a URL is valid.
 func IsValidURL(url string) bool {
 	// Regular expression to validate URL
-	re := regexp.MustCompile(`^https?://[a-zA-Z0-9-\.]+\.[a-zA-Z]{2,}(\/.*)?$`)
+	re := regexp.MustCompile(`^https?://`)
 	return re.MatchString(url)
 }
