@@ -63,6 +63,10 @@ func (c *Config) RemoveAccount(name string) {
 	}
 	// Remove account
 	c.Accounts = append(c.Accounts[:index], c.Accounts[index+1:]...)
+	if c.CurrentAccountName == name {
+		// Logout
+		c.CurrentAccountName = ""
+	}
 }
 
 // SaveConfig saves the configuration to a file.
