@@ -8,6 +8,7 @@ import (
 
 	"github.com/thxrsxm/harzmind-code/internal"
 	"github.com/thxrsxm/harzmind-code/internal/api"
+	"github.com/thxrsxm/harzmind-code/internal/codebase"
 	"github.com/thxrsxm/harzmind-code/internal/executor"
 	"github.com/thxrsxm/harzmind-code/internal/setup"
 	"github.com/thxrsxm/rnbw"
@@ -90,6 +91,12 @@ func addAllCommands(r *REPL) {
 		"model",
 		"Change model",
 		modelCMD,
+	))
+	// tree
+	r.AddCommand(NewCMD(
+		"tree",
+		"Codebase tree visualization",
+		treeCMD,
 	))
 	// Sort commands
 	sort.Slice(r.commands, func(i, j int) bool {
@@ -264,4 +271,14 @@ func editorCMD(r *REPL, args []string) error {
 		return executor.OpenEditor(args[0], args[1])
 	}
 	return fmt.Errorf("wrong format")
+}
+
+// treeCMD generates a hierarchical tree view of all files and directories included in the codebase.
+func treeCMD(r *REPL, args []string) error {
+	files, err := codebase.GetCodeBase(".")
+	if err != nil {
+		return err
+	}
+	r.out.Print(codebase.Tree(files))
+	return nil
 }
