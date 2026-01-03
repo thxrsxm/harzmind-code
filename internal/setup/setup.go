@@ -1,4 +1,3 @@
-// Package setup provides functionality for setting up the project directory and configuration file.
 package setup
 
 import (

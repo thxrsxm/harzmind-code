@@ -1,4 +1,3 @@
-// Package executor provides functionality for executing system commands and opening files in an editor.
 package executor
 
 import (

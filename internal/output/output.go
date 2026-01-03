@@ -1,4 +1,3 @@
-// Package output provides functionality for handling output.
 package output
 
 import (

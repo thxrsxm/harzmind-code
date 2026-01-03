@@ -1,4 +1,3 @@
-// Package internal provides various internal functions and constants.
 package internal
 
 import "path/filepath"

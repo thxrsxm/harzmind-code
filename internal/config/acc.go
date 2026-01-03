@@ -1,4 +1,3 @@
-// Package config provides functionality for handling accounts.
 package config
 
 import "fmt"

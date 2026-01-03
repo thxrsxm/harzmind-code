@@ -1,6 +1,3 @@
-// Package codebase provides functionality for handling a codebase.
-// It allows for retrieving a list of files within a given directory,
-// excluding certain files and directories based on ignore patterns.
 package codebase
 
 import (
@@ -14,19 +11,6 @@ import (
 	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/thxrsxm/harzmind-code/internal"
 )
-
-// File represents a file within the codebase.
-// It contains the file's name, content, and path.
-type File struct {
-	Name    string `json:"name"`
-	Content string `json:"content"`
-	Path    string `json:"path"`
-}
-
-// String returns a string representation of the File struct.
-func (f File) String() string {
-	return fmt.Sprintf("Name: %s, Content: %s, Path: %s", f.Name, f.Content, f.Path)
-}
 
 // createIgnorer creates a new ignore compiler based on the ignore patterns.
 // It also reads additional ignore patterns from a .hzmignore file if it exists.

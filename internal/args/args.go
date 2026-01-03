@@ -1,4 +1,3 @@
-// Package args provides functionality for parsing command line flags.
 package args
 
 import (

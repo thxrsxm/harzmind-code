@@ -1,4 +1,3 @@
-// Package repl provides a Read-Eval-Print Loop (REPL) for the HarzMind Code application.
 package repl
 
 // TITLE is the ASCII art title for the HarzMind Code REPL.

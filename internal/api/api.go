@@ -1,4 +1,3 @@
-// Package api provides functionality for interacting with the API.
 package api
 
 import (
