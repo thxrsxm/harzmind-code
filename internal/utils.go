@@ -1,9 +1,9 @@
 package internal
 
 import (
+	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 )
 
 // GetBinaryPath returns the path of the binary executable.
@@ -47,8 +47,10 @@ func FileExists(path string) bool {
 }
 
 // IsValidURL checks if a URL is valid.
-func IsValidURL(url string) bool {
-	// Regular expression to validate URL
-	re := regexp.MustCompile(`^https?://`)
-	return re.MatchString(url)
+func IsValidURL(s string) bool {
+	_, err := url.ParseRequestURI(s)
+	if err != nil {
+		return false
+	}
+	return true
 }
