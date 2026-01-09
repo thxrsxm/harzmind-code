@@ -12,10 +12,10 @@ import (
 // It prompts the user for account details and validates the input.
 // If successful, it adds the new account to the configuration and saves it.
 func (r *REPL) handleAccountCreation() error {
-	r.out.Println("Create account")
+	fmt.Println("Create account")
 	// Get account name
-	r.out.Print("Name: ")
-	name, err := r.readInput()
+	fmt.Print("Name: ")
+	name, err := r.readInput(false)
 	if err != nil {
 		return err
 	}
@@ -24,21 +24,17 @@ func (r *REPL) handleAccountCreation() error {
 		return fmt.Errorf("name cannot be empty")
 	}
 	// Get API url
-	r.out.Print("API Url: ")
-	apiUrl, err := r.readInput()
+	fmt.Print("API Url: ")
+	apiUrl, err := r.readInput(false)
 	if err != nil {
 		return err
-	}
-	// Check for empty API URL
-	if strings.TrimSpace(apiUrl) == "" {
-		return fmt.Errorf("api url cannot be empty")
 	}
 	// Validate API URL
 	if !internal.IsValidURL(apiUrl) {
 		return fmt.Errorf("invalid api url")
 	}
 	// Get API token (secure)
-	r.out.Print("API Token: ")
+	fmt.Print("API Token: ")
 	apiKey, err := r.readPassword()
 	if err != nil {
 		return err
@@ -47,8 +43,8 @@ func (r *REPL) handleAccountCreation() error {
 	if strings.TrimSpace(apiKey) == "" {
 		return fmt.Errorf("api token cannot be empty")
 	}
-	r.out.Print("Model (optional): ")
-	model, err := r.readInput()
+	fmt.Print("Model (optional): ")
+	model, err := r.readInput(false)
 	if err != nil {
 		return err
 	}

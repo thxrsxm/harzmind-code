@@ -128,10 +128,10 @@ func (r *REPL) printTitle() {
 
 // readInput reads a line of input from the user.
 // It also writes the input to the output file if available.
-func (r *REPL) readInput() (string, error) {
+func (r *REPL) readInput(writeToFile bool) (string, error) {
 	input, err := r.reader.ReadString('\n')
 	// Write user input to output file
-	if r.out.File != nil {
+	if writeToFile && r.out.File != nil {
 		r.out.File.Print(input)
 	}
 	// Handle input error
@@ -198,7 +198,7 @@ func (r *REPL) Run() {
 		rnbw.ForgroundColor(rnbw.Green)
 		r.out.Print("> ")
 		rnbw.ResetColor()
-		input, err := r.readInput()
+		input, err := r.readInput(true)
 		if err != nil {
 			r.out.PrintfError("%v\n", err)
 			continue
@@ -209,6 +209,7 @@ func (r *REPL) Run() {
 		}
 		// Handle slash command
 		if input[0] == '/' && len(input) > 1 {
+			r.out.Println()
 			args := strings.Split(input[1:], " ")
 			if len(args) >= 1 {
 				err := r.HandleCommand(strings.ToLower(args[0]), args[1:])

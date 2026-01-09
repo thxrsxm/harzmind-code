@@ -5,13 +5,13 @@ go 1.24.0
 toolchain go1.24.11
 
 require (
+	github.com/briandowns/spinner v1.23.2
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/thxrsxm/rnbw v0.2.1
 	golang.org/x/term v0.37.0
 )
 
 require (
-	github.com/briandowns/spinner v1.23.2 // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/go-isatty v0.0.8 // indirect

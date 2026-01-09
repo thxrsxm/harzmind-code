@@ -106,9 +106,9 @@ func addAllCommands(r *REPL) {
 // helpCMD displays help information for all commands.
 func helpCMD(r *REPL, args []string) error {
 	for _, v := range r.commands {
-		r.out.Printf("'/%s' ", v.name)
+		r.out.Stdout.Printf("'/%s' ", v.name)
 		rnbw.ForgroundColor(rnbw.Gray)
-		r.out.Printf("- %s\n", v.info)
+		r.out.Stdout.Printf("- %s\n", v.info)
 		rnbw.ResetColor()
 	}
 	return nil
@@ -169,7 +169,10 @@ func bashCMD(r *REPL, args []string) error {
 	if err != nil {
 		rnbw.ForgroundColor(rnbw.Red)
 	}
-	r.out.Println(out)
+	r.out.Print(out)
+	if len(out) >= 1 && out[len(out)-1] != '\n' {
+		r.out.Println()
+	}
 	return nil
 }
 
@@ -202,6 +205,15 @@ func accCMD(r *REPL, args []string) error {
 				return err
 			}
 			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+		case "logout":
+			// Logout
+			account := r.config.CurrentAccountName
+			r.config.CurrentAccountName = ""
+			if err := r.config.SaveConfig(internal.PATH_FILE_CONFIG); err != nil {
+				return err
+			}
+			r.out.Printf("Successfully logged out from '%s'\n", account)
+			return nil
 		default:
 			return fmt.Errorf("command not found")
 		}
@@ -220,14 +232,14 @@ func accCMD(r *REPL, args []string) error {
 			r.out.Printf("Successfully logged in to '%s'\n", args[1])
 			rnbw.ResetColor()
 			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
-		case "logout":
-			// Logout
-			r.config.CurrentAccountName = ""
-			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
 		case "remove":
 			// Remove account
 			r.config.RemoveAccount(args[1])
-			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+			if err := r.config.SaveConfig(internal.PATH_FILE_CONFIG); err != nil {
+				return err
+			}
+			r.out.Printf("Successfully removed account '%s'\n", args[1])
+			return nil
 		case "info":
 			// Show account info
 			account, err := r.config.GetAccount(args[1])
