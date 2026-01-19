@@ -98,6 +98,11 @@ func addAllCommands(r *REPL) {
 		"Codebase tree visualization",
 		treeCMD,
 	))
+	r.AddCommand(NewCMD(
+		"brocken",
+		"Shows the Brocken",
+		brockenCMD,
+	))
 	// Sort commands
 	sort.Slice(r.commands, func(i, j int) bool {
 		return r.commands[i].name < r.commands[j].name
@@ -295,5 +300,10 @@ func treeCMD(r *REPL, args []string) error {
 		return err
 	}
 	r.out.Print(codebase.Tree(files))
+	return nil
+}
+
+func brockenCMD(r *REPL, args []string) error {
+	r.out.Stdout.Println(BROCKEN)
 	return nil
 }
