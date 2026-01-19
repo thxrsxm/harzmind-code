@@ -98,6 +98,7 @@ func addAllCommands(r *REPL) {
 		"Codebase tree visualization",
 		treeCMD,
 	))
+	// brocken
 	r.AddCommand(NewCMD(
 		"brocken",
 		"Shows the Brocken",
@@ -303,6 +304,7 @@ func treeCMD(r *REPL, args []string) error {
 	return nil
 }
 
+// brockenCMD displays the ASCII art for the Brocken mountain.
 func brockenCMD(r *REPL, args []string) error {
 	r.out.Stdout.Println(BROCKEN)
 	return nil
