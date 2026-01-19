@@ -1,3 +1,6 @@
+// Package config manages user accounts and application configuration,
+// allowing creation, listing, modification, and deletion of accounts with API credentials,
+// stored persistently in a local JSON configuration file.
 package config
 
 import (

@@ -1,3 +1,5 @@
+// Package app orchestrates the application's lifecycle, processing command-line arguments,
+// setting up configuration files, initializing the project if needed, and launching the REPL.
 package app
 
 import (

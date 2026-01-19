@@ -1,3 +1,6 @@
+// Package codebase provides functionality for retrieving the project's codebase,
+// including reading files with optional ignore patterns, generating file trees for visualization,
+// and handling ignore rules defined in .hzmignore files.
 package codebase
 
 import (

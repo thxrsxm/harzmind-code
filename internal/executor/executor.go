@@ -1,3 +1,5 @@
+// Package executor provides utilities for executing external commands,
+// including running bash scripts and opening files in terminal-based editors.
 package executor
 
 import (

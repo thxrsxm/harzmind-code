@@ -1,3 +1,6 @@
+// Package repl implements the Read-Eval-Print Loop for interactive user interaction,
+// defining and executing slash commands for account management, codebase operations,
+// external tool execution, and handling user messages sent to the LLM.
 package repl
 
 import (

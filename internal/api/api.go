@@ -1,3 +1,5 @@
+// Package api handles communication with external Large Language Model APIs,
+// including sending messages, retrieving available models, and managing API requests.
 package api
 
 import (

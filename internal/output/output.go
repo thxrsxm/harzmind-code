@@ -1,3 +1,6 @@
+// Package output manages multi-destination output handling,
+// supporting simultaneous printing to stdout and optional timestamped Markdown files
+// for conversation logging, with integrated colorized warning and error messaging.
 package output
 
 import (

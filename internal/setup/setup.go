@@ -1,3 +1,6 @@
+// Package setup handles initial configuration and project setup tasks,
+// including creating necessary directories, initializing default files like HZMIND.md and .hzmignore,
+// and ensuring the application's configuration structure is in place.
 package setup
 
 import (

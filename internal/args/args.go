@@ -1,3 +1,4 @@
+// Package args defines and parses command-line flags for the HarzMind Code application.
 package args
 
 import (
