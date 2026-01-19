@@ -50,11 +50,11 @@ func addAllCommands(r *REPL) {
 		"Initialize project",
 		initCMD,
 	))
-	// /forget
+	// /clear
 	r.AddCommand(NewCMD(
-		"forget",
+		"clear",
 		"Clear session context",
-		forgetCMD,
+		clearCMD,
 	))
 	// /models
 	r.AddCommand(NewCMD(
@@ -134,10 +134,13 @@ func initCMD(r *REPL, args []string) error {
 	return nil
 }
 
-// forgetCMD clears the session context.
-func forgetCMD(r *REPL, args []string) error {
+// clearCMD clears the session context.
+func clearCMD(r *REPL, args []string) error {
 	r.messages = []api.Message{}
 	r.messages = append(r.messages, api.Message{Role: "system", Content: ""})
+	rnbw.ForgroundColor(rnbw.Green)
+	r.out.Println("Context was successfully deleted")
+	rnbw.ResetColor()
 	return nil
 }
 
