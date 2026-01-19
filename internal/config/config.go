@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/thxrsxm/harzmind-code/internal"
+	"github.com/thxrsxm/harzmind-code/internal/common"
 )
 
 // Config represents the configuration file structure.
@@ -76,7 +76,7 @@ func (c *Config) SaveConfig(path string) error {
 		return err
 	}
 	// Get binary path
-	binDir, err := internal.GetBinaryPath()
+	binDir, err := common.GetBinaryPath()
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func (c *Config) SaveConfig(path string) error {
 // LoadConfig loads the configuration from a file.
 func LoadConfig(path string) (*Config, error) {
 	// Get binary path
-	binDir, err := internal.GetBinaryPath()
+	binDir, err := common.GetBinaryPath()
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func CreateConfig(path string) error {
 		return err
 	}
 	// Get binary path
-	binDir, err := internal.GetBinaryPath()
+	binDir, err := common.GetBinaryPath()
 	if err != nil {
 		return err
 	}

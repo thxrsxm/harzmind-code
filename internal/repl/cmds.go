@@ -8,6 +8,7 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal"
 	"github.com/thxrsxm/harzmind-code/internal/api"
 	"github.com/thxrsxm/harzmind-code/internal/codebase"
+	"github.com/thxrsxm/harzmind-code/internal/common"
 	"github.com/thxrsxm/harzmind-code/internal/executor"
 	"github.com/thxrsxm/harzmind-code/internal/setup"
 	"github.com/thxrsxm/rnbw"
@@ -204,12 +205,12 @@ func accCMD(r *REPL, args []string) error {
 			if err := r.handleAccountCreation(); err != nil {
 				return err
 			}
-			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+			return r.config.SaveConfig(common.PATH_FILE_CONFIG)
 		case "logout":
 			// Logout
 			account := r.config.CurrentAccountName
 			r.config.CurrentAccountName = ""
-			if err := r.config.SaveConfig(internal.PATH_FILE_CONFIG); err != nil {
+			if err := r.config.SaveConfig(common.PATH_FILE_CONFIG); err != nil {
 				return err
 			}
 			r.out.Printf("Successfully logged out from '%s'\n", account)
@@ -231,11 +232,11 @@ func accCMD(r *REPL, args []string) error {
 			rnbw.ForgroundColor(rnbw.Green)
 			r.out.Printf("Successfully logged in to '%s'\n", args[1])
 			rnbw.ResetColor()
-			return r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+			return r.config.SaveConfig(common.PATH_FILE_CONFIG)
 		case "remove":
 			// Remove account
 			r.config.RemoveAccount(args[1])
-			if err := r.config.SaveConfig(internal.PATH_FILE_CONFIG); err != nil {
+			if err := r.config.SaveConfig(common.PATH_FILE_CONFIG); err != nil {
 				return err
 			}
 			r.out.Printf("Successfully removed account '%s'\n", args[1])
@@ -264,7 +265,7 @@ func modelCMD(r *REPL, args []string) error {
 		return err
 	}
 	account.Model = args[0]
-	err = r.config.SaveConfig(internal.PATH_FILE_CONFIG)
+	err = r.config.SaveConfig(common.PATH_FILE_CONFIG)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,8 @@
 package codebase
 
-import "github.com/thxrsxm/harzmind-code/internal"
+import (
+	"github.com/thxrsxm/harzmind-code/internal/common"
+)
 
 // ignorePatterns is a list of default patterns to ignore when retrieving the codebase.
 var ignorePatterns []string = []string{
@@ -11,7 +13,7 @@ var ignorePatterns []string = []string{
 	"vendor",
 	"*.exe",
 	"config.xml",
-	internal.FILE_IGNORE,
-	internal.FILE_README,
-	internal.DIR_MAIN + "/",
+	common.FILE_IGNORE,
+	common.FILE_README,
+	common.DIR_MAIN + "/",
 }

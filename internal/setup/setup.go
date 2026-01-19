@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/thxrsxm/harzmind-code/internal"
+	"github.com/thxrsxm/harzmind-code/internal/common"
 	"github.com/thxrsxm/harzmind-code/internal/config"
 )
 
@@ -12,15 +12,15 @@ import (
 // It checks if the configuration file exists, and if not, creates a new one.
 func SetupConfigFile() error {
 	// Get binary path
-	binDir, err := internal.GetBinaryPath()
+	binDir, err := common.GetBinaryPath()
 	if err != nil {
 		return err
 	}
-	configPath := filepath.Join(binDir, internal.PATH_FILE_CONFIG)
+	configPath := filepath.Join(binDir, common.PATH_FILE_CONFIG)
 	// Check config file not exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		// Create new config file
-		err := config.CreateConfig(internal.PATH_FILE_CONFIG)
+		err := config.CreateConfig(common.PATH_FILE_CONFIG)
 		if err != nil {
 			return nil
 		}
@@ -32,17 +32,17 @@ func SetupConfigFile() error {
 // It creates the main directory, README file, and ignore file if they do not exist.
 func SetupProjectDir() error {
 	// Create hzmind directory
-	err := internal.CreateDirIfNotExists(internal.DIR_MAIN)
+	err := common.CreateDirIfNotExists(common.DIR_MAIN)
 	if err != nil {
 		return err
 	}
 	// Check HZMIND.md file
-	err = internal.CreateFileIfNotExists(internal.PATH_FILE_README)
+	err = common.CreateFileIfNotExists(common.PATH_FILE_README)
 	if err != nil {
 		return err
 	}
 	// Check .hzmignore file
-	err = internal.CreateFileIfNotExists(internal.PATH_FILE_IGNORE)
+	err = common.CreateFileIfNotExists(common.PATH_FILE_IGNORE)
 	if err != nil {
 		return err
 	}

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	ignore "github.com/sabhiram/go-gitignore"
-	"github.com/thxrsxm/harzmind-code/internal"
+	"github.com/thxrsxm/harzmind-code/internal/common"
 )
 
 // createIgnorer creates a new ignore compiler based on the ignore patterns.
@@ -19,7 +19,7 @@ func createIgnorer() *ignore.GitIgnore {
 	patterns := make([]string, len(ignorePatterns))
 	copy(patterns, ignorePatterns)
 	// Check if .hzmignore file exists and add its patterns
-	if file, err := os.Open(internal.PATH_FILE_IGNORE); err == nil {
+	if file, err := os.Open(common.PATH_FILE_IGNORE); err == nil {
 		defer file.Close()
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
@@ -35,7 +35,7 @@ func createIgnorer() *ignore.GitIgnore {
 
 // IgnoreFileExists checks if the .hzmignore file exists.
 func IgnoreFileExists() bool {
-	return internal.FileExists(internal.PATH_FILE_IGNORE)
+	return common.FileExists(common.PATH_FILE_IGNORE)
 }
 
 // GetCodeBase retrieves a list of files within the given root directory,

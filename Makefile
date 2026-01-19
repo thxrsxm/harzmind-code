@@ -1,6 +1,8 @@
 BINARY_NAME = hzmind
 BUILD_DATE = $(shell date +%Y%m%d%H%M)
 
+MAIN_PATH = cmd/hzmind/main.go
+
 BUILD_DIR = ./bin
 INTERNAL_DIR = ./internal
 INSTALL_DIR = $(APPDATA)/HarzMindCode
@@ -26,17 +28,17 @@ genver:
 ## build: build the application
 .PHONY: build
 build: genver
-	go build -o ${BINARY_NAME}.exe main.go
+	go build -o ${BINARY_NAME}.exe ${MAIN_PATH}
 
 ## export: export the application
 .PHONY: export
 export: genver
 	@mkdir -p ${BUILD_DIR}/${BUILD_DATE}
-	#GOARCH=amd64 GOOS=darwin go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-darwin-amd64 main.go
-	#GOARCH=arm64 GOOS=darwin go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-darwin-arm64 main.go
-	#GOARCH=amd64 GOOS=linux go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-linux-amd64 main.go
-	GOARCH=amd64 GOOS=windows go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-windows-amd64.exe main.go
-	#GOARCH=amd64 GOOS=windows go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}.exe main.go
+	#GOARCH=amd64 GOOS=darwin go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-darwin-amd64 ${MAIN_PATH}
+	#GOARCH=arm64 GOOS=darwin go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-darwin-arm64 ${MAIN_PATH}
+	#GOARCH=amd64 GOOS=linux go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-linux-amd64 ${MAIN_PATH}
+	GOARCH=amd64 GOOS=windows go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-windows-amd64.exe ${MAIN_PATH}
+	#GOARCH=amd64 GOOS=windows go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}.exe ${MAIN_PATH}
 
 ## run: run the application
 .PHONY: run

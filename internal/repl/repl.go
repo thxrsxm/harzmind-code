@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
-	"github.com/thxrsxm/harzmind-code/internal"
 	"github.com/thxrsxm/harzmind-code/internal/api"
 	"github.com/thxrsxm/harzmind-code/internal/codebase"
+	"github.com/thxrsxm/harzmind-code/internal/common"
 	"github.com/thxrsxm/harzmind-code/internal/config"
 	"github.com/thxrsxm/harzmind-code/internal/output"
 	"github.com/thxrsxm/rnbw"
@@ -39,13 +39,13 @@ func NewREPL(outputFile bool) (*REPL, error) {
 		messages: []api.Message{},
 	}
 	// Load config
-	cnfg, err := config.LoadConfig(internal.PATH_FILE_CONFIG)
+	cnfg, err := config.LoadConfig(common.PATH_FILE_CONFIG)
 	if err != nil {
 		return nil, err
 	}
 	r.config = cnfg
 	// Create output
-	o, err := output.NewOutput(internal.PATH_DIR_OUT, outputFile)
+	o, err := output.NewOutput(common.PATH_DIR_OUT, outputFile)
 	if err != nil {
 		return nil, err
 	}
@@ -69,9 +69,9 @@ func (r *REPL) handleUserMessage(msg string) (string, error) {
 		return "", err
 	}
 	// Load HZMIND.md
-	data, err := os.ReadFile(internal.PATH_FILE_README)
+	data, err := os.ReadFile(common.PATH_FILE_README)
 	if err != nil {
-		r.out.PrintfWarning("no %s file\n\n", internal.FILE_IGNORE)
+		r.out.PrintfWarning("no %s file\n\n", common.FILE_IGNORE)
 		data = []byte{}
 	}
 	// Overwrite System Prompt message
@@ -193,7 +193,7 @@ func (r *REPL) Run() {
 		}
 		// Show no ignore file warning
 		if !codebase.IgnoreFileExists() {
-			r.out.PrintfWarning("no %s file\n\n", internal.FILE_IGNORE)
+			r.out.PrintfWarning("no %s file\n\n", common.FILE_IGNORE)
 		}
 		rnbw.ForgroundColor(rnbw.Green)
 		r.out.Print("> ")

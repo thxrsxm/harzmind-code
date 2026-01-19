@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/thxrsxm/harzmind-code/internal"
+	"github.com/thxrsxm/harzmind-code/internal/common"
 	"github.com/thxrsxm/harzmind-code/internal/config"
 )
 
@@ -30,7 +30,7 @@ func (r *REPL) handleAccountCreation() error {
 		return err
 	}
 	// Validate API URL
-	if !internal.IsValidURL(apiUrl) {
+	if !common.IsValidURL(apiUrl) {
 		return fmt.Errorf("invalid api url")
 	}
 	// Get API token (secure)

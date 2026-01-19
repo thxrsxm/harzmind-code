@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/thxrsxm/rnbw"
 )
 
-func main() {
+func Run() {
 	// Setup config file
 	if err := setup.SetupConfigFile(); err != nil {
 		rnbw.ForgroundColor(rnbw.Red)
