@@ -3,6 +3,7 @@ out/
 
 hzmind.yaml
 hzmind.exe
+hzmind.log
 .hzmignore
 config.json
 

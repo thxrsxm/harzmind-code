@@ -15,5 +15,6 @@ var ignorePatterns []string = []string{
 	"config.xml",
 	common.FILE_IGNORE,
 	common.FILE_README,
+	common.FILE_LOG,
 	common.DIR_MAIN + "/",
 }

@@ -125,6 +125,8 @@ func helpCMD(r *REPL, args []string) error {
 func exitCMD(r *REPL, args []string) error {
 	r.running = false
 	r.out.CloseOutput()
+	r.log.Infof("exit")
+	r.log.Close()
 	return nil
 }
 
@@ -137,6 +139,7 @@ func initCMD(r *REPL, args []string) error {
 	rnbw.ForgroundColor(rnbw.Green)
 	r.out.Println("Project initiated")
 	rnbw.ResetColor()
+	r.log.Infof("project initiated")
 	return nil
 }
 
@@ -147,6 +150,7 @@ func clearCMD(r *REPL, args []string) error {
 	rnbw.ForgroundColor(rnbw.Green)
 	r.out.Println("Context was successfully deleted")
 	rnbw.ResetColor()
+	r.log.Infof("cmpleted context clear")
 	return nil
 }
 
@@ -157,6 +161,7 @@ func modelsCMD(r *REPL, args []string) error {
 		return err
 	}
 	models, err := api.GetModels(account.ApiUrl, account.ApiKey)
+	r.log.Infof("fetching available models")
 	if err != nil {
 		return err
 	}
@@ -211,10 +216,17 @@ func accCMD(r *REPL, args []string) error {
 		switch args[0] {
 		case "new":
 			// Create a new account
-			if err := r.handleAccountCreation(); err != nil {
+			account, err := r.handleAccountCreation()
+			if err != nil {
 				return err
 			}
-			return r.config.SaveConfig(common.PATH_FILE_CONFIG)
+			if err := r.config.SaveConfig(common.PATH_FILE_CONFIG); err != nil {
+				rnbw.ForgroundColor(rnbw.Green)
+				r.out.Printf("Successfully created the account '%s'\n", account.Name)
+				rnbw.ResetColor()
+				r.log.Infof("created account '%s'", account.Name)
+			}
+			return nil
 		case "logout":
 			// Logout
 			account := r.config.CurrentAccountName
@@ -222,7 +234,10 @@ func accCMD(r *REPL, args []string) error {
 			if err := r.config.SaveConfig(common.PATH_FILE_CONFIG); err != nil {
 				return err
 			}
+			rnbw.ForgroundColor(rnbw.Green)
 			r.out.Printf("Successfully logged out from '%s'\n", account)
+			rnbw.ResetColor()
+			r.log.Infof("logged out from '%s'", account)
 			return nil
 		default:
 			return fmt.Errorf("command not found")
@@ -241,6 +256,7 @@ func accCMD(r *REPL, args []string) error {
 			rnbw.ForgroundColor(rnbw.Green)
 			r.out.Printf("Successfully logged in to '%s'\n", args[1])
 			rnbw.ResetColor()
+			r.log.Infof("logged in to '%s'", args[1])
 			return r.config.SaveConfig(common.PATH_FILE_CONFIG)
 		case "remove":
 			// Remove account
@@ -249,6 +265,7 @@ func accCMD(r *REPL, args []string) error {
 				return err
 			}
 			r.out.Printf("Successfully removed account '%s'\n", args[1])
+			r.log.Infof("removed account '%s'", args[1])
 			return nil
 		case "info":
 			// Show account info
@@ -281,6 +298,7 @@ func modelCMD(r *REPL, args []string) error {
 	rnbw.ForgroundColor(rnbw.Green)
 	r.out.Printf("Successfully changed model to '%s' for account '%s'\n", args[0], r.config.CurrentAccountName)
 	rnbw.ResetColor()
+	r.log.Infof("changed model to '%s' for account '%s'", args[0], r.config.CurrentAccountName)
 	return nil
 }
 

@@ -14,6 +14,8 @@ var (
 	VersionFlag = flag.Bool("v", false, "Show version")
 	// OutputFlag is a flag to write to an output file.
 	OutputFlag = flag.Bool("o", false, "Write to output file")
+	// LogFlag is a flag to enable logging.
+	LogFlag = flag.Bool("l", false, "Enable logging")
 )
 
 // Parse parses the command line flags.

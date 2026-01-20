@@ -17,6 +17,7 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal/codebase"
 	"github.com/thxrsxm/harzmind-code/internal/common"
 	"github.com/thxrsxm/harzmind-code/internal/config"
+	"github.com/thxrsxm/harzmind-code/internal/logger"
 	"github.com/thxrsxm/harzmind-code/internal/output"
 	"github.com/thxrsxm/rnbw"
 	"golang.org/x/term"
@@ -28,16 +29,18 @@ type REPL struct {
 	out      *output.Output
 	config   *config.Config
 	reader   *bufio.Reader
+	log      *logger.Logger
 	commands []CMD
 	messages []api.Message
 }
 
 // NewREPL creates a new REPL instance.
 // If outputFile is true, it will write output to a file.
-func NewREPL(outputFile bool) (*REPL, error) {
+func NewREPL(outputFile bool, log *logger.Logger) (*REPL, error) {
 	r := &REPL{
 		running:  false,
 		reader:   bufio.NewReader(os.Stdin),
+		log:      log,
 		commands: []CMD{},
 		messages: []api.Message{},
 	}
@@ -62,6 +65,7 @@ func NewREPL(outputFile bool) (*REPL, error) {
 // It retrieves the codebase, constructs a system prompt,
 // adds the user's message, and sends it to the API for processing.
 func (r *REPL) handleUserMessage(msg string) (string, error) {
+	r.log.Infof("handling user message (length: %d chars)", len(msg))
 	// Get code base
 	files, err := codebase.GetCodeBase(".")
 	if err != nil {
@@ -102,15 +106,18 @@ func (r *REPL) handleUserMessage(msg string) (string, error) {
 	s.Start()
 	s.Suffix = " Sending codebase and querying LLM..."
 	resp, err := api.SendMessage(account.ApiUrl, account.Model, account.ApiKey, r.messages)
+	r.log.Infof("%s", "sending codebase and querying LLM")
 	// Stop the spinner after the call completes
 	s.Stop()
 	if err != nil {
+		r.log.Errorf("API call failed for user message: %v", err)
 		// Remove last message from messages (user message)
 		if len(r.messages) >= 1 {
 			r.messages = r.messages[:len(r.messages)-1]
 		}
 		return "", err
 	}
+	r.log.Infof("received response from API for user message")
 	// Add AI message to messages
 	r.messages = append(r.messages, api.Message{
 		Role:    "assistant",
@@ -165,9 +172,11 @@ func (r *REPL) AddCommand(command *CMD) {
 func (r *REPL) HandleCommand(command string, args []string) error {
 	for _, v := range r.commands {
 		if command == v.name {
+			r.log.Infof("command '/%s' was entered", command)
 			return v.command(r, args)
 		}
 	}
+	r.log.Errorf("unknown command was entered: /%s", command)
 	return fmt.Errorf("unknown command")
 }
 
@@ -182,11 +191,15 @@ func (r *REPL) Run() {
 		rnbw.ForgroundColor(rnbw.Green)
 		r.out.Printf("\nSuccessfully logged in to %s\n", account.Name)
 		rnbw.ResetColor()
+		r.log.Infof("logged in to '%s'", account.Name)
 	}
 	// Graceful cleanup
 	defer func() {
+		r.log.Infof("graceful cleanup")
+		_ = r.log.Close()
 		r.out.CloseOutput()
 	}()
+	r.log.Infof("REPL started")
 	for r.running {
 		rnbw.ResetColor()
 		r.out.Println()
@@ -204,6 +217,7 @@ func (r *REPL) Run() {
 		input, err := r.readInput(true)
 		if err != nil {
 			r.out.PrintfError("%v\n", err)
+			r.log.Errorf("%v", err)
 			continue
 		}
 		// Handle input is empty
@@ -218,6 +232,7 @@ func (r *REPL) Run() {
 				err := r.HandleCommand(strings.ToLower(args[0]), args[1:])
 				if err != nil {
 					r.out.PrintfError("%v\n", err)
+					r.log.Errorf("%v", err)
 				}
 			} else {
 				r.out.PrintlnError("unknown command")
@@ -228,6 +243,7 @@ func (r *REPL) Run() {
 		resp, err := r.handleUserMessage(input)
 		if err != nil {
 			r.out.PrintfError("%v\n", err)
+			r.log.Errorf("%v", err)
 			continue
 		}
 		r.out.Printf("\n%s\n", resp)
