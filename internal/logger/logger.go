@@ -1,11 +1,14 @@
-// Package logger provides a simple file-based logging utility for the application,
-// supporting different log levels (Debug, Info, Warning, Error) with timestamped entries.
-// It appends log messages to a specified file and provides methods to log at various levels.
+// Package logger provides a simple, singleton-based logging utility.
+// It supports logging messages to a file with different severity levels (DEBUG, INFO, WARNING, ERROR)
+// and includes timestamps. The logger uses a singleton pattern to ensure only one file handle is used,
+// with thread-safe operations via mutexes. It performs synchronous logging by default but offers
+// a Sync function for immediate file flushing if needed.
 package logger
 
 import (
 	"fmt"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -13,88 +16,109 @@ import (
 type LogLevel int
 
 const (
-	Debug   LogLevel = iota // Debug level for fine-grained informational events useful for debugging.
-	Info                    // Info level for general informational messages.
-	Warning                 // Warning level for potentially harmful situations or rare errors.
-	Error                   // Error level for error conditions that might still allow the application to continue running.
+	// DEBUG level for fine-grained informational events useful for debugging.
+	DEBUG LogLevel = iota
+	// INFO level for general informational messages.
+	INFO
+	// WARNING level for potentially harmful situations or rare errors.
+	WARNING
+	// ERROR level for error conditions that might still allow the application to continue running.
+	ERROR
 )
 
-// Logger represents a file-based logger.
-// It holds a reference to an open file where log entries are written.
-type Logger struct {
+var (
+	// instance holds the single logWriter instance.
+	instance *logWriter
+	// once ensures that Init is called only once, implementing the singleton pattern.
+	once sync.Once
+	// mu provides global synchronization, though primarily used in the singleton initialization.
+	mu sync.Mutex
+)
+
+// logWriter encapsulates the file handle and its own mutex for thread-safe writing.
+// This struct is not exported to enforce the singleton pattern.
+type logWriter struct {
 	file *os.File
+	mu   sync.Mutex
 }
 
-// NewLogger creates a new Logger instance that writes to the specified file path.
-// It opens or creates the file in append mode with read-write permissions for the owner.
-// Returns an error if the file cannot be opened or created.
-// The caller is responsible for calling Close() to free resources.
-func NewLogger(filePath string) (*Logger, error) {
-	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+// Init initializes the logger with the specified file path.
+// It uses the sync.Once mechanism to ensure the logger is initialized only once throughout the application lifecycle.
+// The file is opened in append mode with permissions 0644 (readable by owner and group, writable by owner).
+// If initialization fails, subsequent Log calls will silently ignore writes.
+// Note: This function should be called early in the application's startup process.
+func Init(filepath string) error {
+	var err error
+	once.Do(func() {
+		var file *os.File
+		file, err = os.OpenFile(filepath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		if err != nil {
+			return
+		}
+		instance = &logWriter{file: file}
+	})
+	return err
+}
+
+// Log writes a formatted log message to the initialized log file.
+// It prepends the current timestamp and log level to the message.
+func Log(level LogLevel, format string, a ...any) {
+	w, err := getLogWriter()
 	if err != nil {
-		return nil, err
+		return
 	}
-	return &Logger{file: file}, nil
-}
-
-// Close closes the log file if it is open.
-// It returns nil if the file is already closed or does not exist.
-// Should be called to ensure proper resource cleanup, typically deferred after NewLogger.
-func (l *Logger) Close() error {
-	if l.file == nil {
-		return nil
-	}
-	return l.file.Close()
-}
-
-// log is a private helper method that formats and writes a log entry at the given level.
-// It prepends a timestamp and log level to the message, then appends a newline.
-// Ignores write errors to prevent logging failures from crashing the application.
-func (l *Logger) log(level LogLevel, format string, a ...any) {
-	timestamp := time.Now().Format("2006-01-02 15:04:05")
-	// Format the full log entry: [timestamp] [LEVEL] message
-	logEntry := fmt.Sprintf("[%s] [%s] %s\n", timestamp, levelString(level), fmt.Sprintf(format, a...))
+	w.mu.Lock()
+	defer w.mu.Unlock()
 	// Attempt to write to the file, ignoring potential errors for simplicity.
-	if l.file != nil {
-		_, _ = l.file.WriteString(logEntry)
+	if w.file != nil {
+		// Generate a timestamp
+		timestamp := time.Now().Format("2006-01-02 15:04:05")
+		// Format the full log entry: [timestamp] [LEVEL] message
+		fmt.Fprintf(w.file, "[%s] [%s] %s\n", timestamp, levelString(level), fmt.Sprintf(format, a...))
 	}
 }
 
-// Debugf logs a message at the Debug level using fmt.Sprintf-style formatting.
-// Useful for verbose debugging information that might not be needed in production.
-func (l *Logger) Debugf(format string, a ...any) {
-	l.log(Debug, format, a...)
+// Close closes the log file if it's open.
+// This should typically be called during application shutdown to release resources.
+// Returns an error if closing the file fails; otherwise, nil.
+func Close() error {
+	if instance != nil && instance.file != nil {
+		return instance.file.Close()
+	}
+	return nil
 }
 
-// Infof logs a message at the Info level using fmt.Sprintf-style formatting.
-// Suitable for general informational messages about application events.
-func (l *Logger) Infof(format string, a ...any) {
-	l.log(Info, format, a...)
+// Sync forces any buffered data in the log file to be written to disk immediately.
+// This is useful for ensuring logs are persisted in real-time, such as in logging-critical applications.
+// Returns an error if syncing fails or if the logger isn't initialized.
+func Sync() error {
+	w, err := getLogWriter()
+	if err != nil {
+		return err
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.file.Sync()
 }
 
-// Warningf logs a message at the Warning level using fmt.Sprintf-style formatting.
-// Indicates potential issues or warnings that do not halt execution.
-func (l *Logger) Warningf(format string, a ...any) {
-	l.log(Warning, format, a...)
-}
-
-// Errorf logs a message at the Error level using fmt.Sprintf-style formatting.
-// Used for serious errors that may require attention but allow continued operation.
-func (l *Logger) Errorf(format string, a ...any) {
-	l.log(Error, format, a...)
+// getLogWriter retrieves the singleton logWriter instance.
+func getLogWriter() (*logWriter, error) {
+	if instance == nil {
+		return nil, fmt.Errorf("Init() must be called first")
+	}
+	return instance, nil
 }
 
 // levelString converts a LogLevel to its string representation.
-// Used internally for log entry formatting. Returns "UNKNOWN" for invalid levels.
 func levelString(level LogLevel) string {
 	switch level {
-	case Debug:
+	case DEBUG:
 		return "DEBUG"
-	case Info:
+	case INFO:
 		return "INFO"
-	case Warning:
+	case WARNING:
 		return "WARNING"
-	case Error:
+	case ERROR:
 		return "ERROR"
 	default:
 		return "UNKNOWN"

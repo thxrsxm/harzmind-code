@@ -15,31 +15,28 @@ import (
 	"github.com/thxrsxm/rnbw"
 )
 
-var log *logger.Logger = &logger.Logger{}
-
 func Run() {
 	// Parse command line flags
 	args.Parse()
 	// Initialize logger
 	if *args.LogFlag {
-		var err error
-		log, err = logger.NewLogger(common.PATH_FILE_LOG)
+		err := logger.Init(common.PATH_FILE_LOG)
 		if err != nil {
 			rnbw.ForgroundColor(rnbw.Red)
 			fmt.Fprintf(os.Stderr, "[ERROR] failed to initialize logger: %v\n", err)
 			rnbw.ResetColor()
 			os.Exit(1)
 		}
-		defer log.Close()
+		defer logger.Close()
 	}
-	log.Infof("HarzMind Code started")
+	logger.Log(logger.INFO, "%s", "HarzMind Code started")
 	// Setup config file
 	if err := setup.SetupConfigFile(); err != nil {
 		msg := fmt.Sprintf("setting up config file: %v", err)
 		rnbw.ForgroundColor(rnbw.Red)
 		fmt.Fprintf(os.Stdout, "[ERROR] %s\n", msg)
 		rnbw.ResetColor()
-		log.Errorf("%s", msg)
+		logger.Log(logger.ERROR, "%s", msg)
 		os.Exit(1)
 	}
 	// Show help
@@ -62,20 +59,20 @@ func Run() {
 			rnbw.ForgroundColor(rnbw.Red)
 			fmt.Fprintf(os.Stderr, "[ERROR] %v\n", err)
 			rnbw.ResetColor()
-			log.Errorf("%v", err)
+			logger.Log(logger.ERROR, "%v", err)
 		}
 		rnbw.ForgroundColor(rnbw.Green)
 		fmt.Fprint(os.Stdout, "Project initiated\n")
 		rnbw.ResetColor()
-		log.Infof("%s", "project initiated")
+		logger.Log(logger.INFO, "%s", "project initiated")
 	}
 	// Create new REPL
-	repl, err := repl.NewREPL(*args.OutputFlag, log)
+	repl, err := repl.NewREPL(*args.OutputFlag)
 	if err != nil {
 		rnbw.ForgroundColor(rnbw.Red)
 		fmt.Fprintf(os.Stdout, "%v\n", err)
 		rnbw.ResetColor()
-		log.Errorf("%v", err)
+		logger.Log(logger.ERROR, "%v", err)
 		os.Exit(1)
 	}
 	repl.Run()

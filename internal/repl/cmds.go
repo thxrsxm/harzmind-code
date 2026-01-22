@@ -11,6 +11,7 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal/codebase"
 	"github.com/thxrsxm/harzmind-code/internal/common"
 	"github.com/thxrsxm/harzmind-code/internal/executor"
+	"github.com/thxrsxm/harzmind-code/internal/logger"
 	"github.com/thxrsxm/harzmind-code/internal/setup"
 	"github.com/thxrsxm/rnbw"
 )
@@ -132,8 +133,7 @@ func helpCMD(r *REPL, args []string) error {
 func exitCMD(r *REPL, args []string) error {
 	r.running = false
 	r.out.CloseOutput()
-	r.log.Infof("exit")
-	r.log.Close()
+	logger.Log(logger.INFO, "%s", "exit")
 	return nil
 }
 
@@ -146,7 +146,7 @@ func initCMD(r *REPL, args []string) error {
 	rnbw.ForgroundColor(rnbw.Green)
 	r.out.Println("Project initiated")
 	rnbw.ResetColor()
-	r.log.Infof("project initiated")
+	logger.Log(logger.INFO, "%s", "project initiated")
 	return nil
 }
 
@@ -158,7 +158,7 @@ func clearCMD(r *REPL, args []string) error {
 	rnbw.ForgroundColor(rnbw.Green)
 	r.out.Println("Context was successfully deleted")
 	rnbw.ResetColor()
-	r.log.Infof("cmpleted context clear")
+	logger.Log(logger.INFO, "%s", "completed context clear")
 	return nil
 }
 
@@ -169,7 +169,7 @@ func modelsCMD(r *REPL, args []string) error {
 		return err
 	}
 	models, err := api.GetModels(account.ApiUrl, account.ApiKey)
-	r.log.Infof("fetching available models")
+	logger.Log(logger.INFO, "%s", "fetching available models")
 	if err != nil {
 		return err
 	}
@@ -232,7 +232,7 @@ func accCMD(r *REPL, args []string) error {
 				rnbw.ForgroundColor(rnbw.Green)
 				r.out.Printf("Successfully created the account '%s'\n", account.Name)
 				rnbw.ResetColor()
-				r.log.Infof("created account '%s'", account.Name)
+				logger.Log(logger.INFO, "created account '%s'", account.Name)
 			}
 			return nil
 		case "logout":
@@ -245,7 +245,7 @@ func accCMD(r *REPL, args []string) error {
 			rnbw.ForgroundColor(rnbw.Green)
 			r.out.Printf("Successfully logged out from '%s'\n", account)
 			rnbw.ResetColor()
-			r.log.Infof("logged out from '%s'", account)
+			logger.Log(logger.INFO, "logged out from '%s'", account)
 			return nil
 		default:
 			return fmt.Errorf("command not found")
@@ -264,7 +264,7 @@ func accCMD(r *REPL, args []string) error {
 			rnbw.ForgroundColor(rnbw.Green)
 			r.out.Printf("Successfully logged in to '%s'\n", args[1])
 			rnbw.ResetColor()
-			r.log.Infof("logged in to '%s'", args[1])
+			logger.Log(logger.INFO, "logged in to '%s'", args[1])
 			return r.config.SaveConfig(common.PATH_FILE_CONFIG)
 		case "remove":
 			// Remove account
@@ -273,7 +273,7 @@ func accCMD(r *REPL, args []string) error {
 				return err
 			}
 			r.out.Printf("Successfully removed account '%s'\n", args[1])
-			r.log.Infof("removed account '%s'", args[1])
+			logger.Log(logger.WARNING, "removed account '%s'", args[1])
 			return nil
 		case "info":
 			// Show account info
@@ -306,7 +306,7 @@ func modelCMD(r *REPL, args []string) error {
 	rnbw.ForgroundColor(rnbw.Green)
 	r.out.Printf("Successfully changed model to '%s' for account '%s'\n", args[0], r.config.CurrentAccountName)
 	rnbw.ResetColor()
-	r.log.Infof("changed model to '%s' for account '%s'", args[0], r.config.CurrentAccountName)
+	logger.Log(logger.INFO, "changed model to '%s' for account '%s'", args[0], r.config.CurrentAccountName)
 	return nil
 }
 
@@ -353,7 +353,7 @@ func statusCMD(r *REPL, args []string) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		dir = "-"
-		r.log.Errorf("%v", err)
+		logger.Log(logger.ERROR, "%v", err)
 	}
 	// Print status
 	r.out.Printf("Account:	'%s'\n", accountName)
