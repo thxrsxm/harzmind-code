@@ -1,4 +1,13 @@
-BINARY_NAME = hzmind
+# Detect OS and set binary name
+OS := $(shell uname -s)
+ifeq ($(findstring Darwin, $(OS)), Darwin)
+	BINARY_NAME = hzmind
+else ifeq ($(findstring Linux, $(OS)), Linux)
+	BINARY_NAME = hzmind
+else
+	BINARY_NAME = hzmind.exe
+endif
+
 BUILD_DATE = $(shell date +%Y%m%d%H%M)
 
 MAIN_PATH = cmd/hzmind/main.go
@@ -28,7 +37,7 @@ genver:
 ## build: build the application
 .PHONY: build
 build: genver
-	go build -o ${BINARY_NAME}.exe ${MAIN_PATH}
+	go build -o ${BUILD_DIR}/${BINARY_NAME} ${MAIN_PATH}
 
 ## export: export the application
 .PHONY: export
@@ -43,7 +52,7 @@ export: genver
 ## run: run the application
 .PHONY: run
 run:
-	./${BINARY_NAME}.exe -o -l
+	${BUILD_DIR}/${BINARY_NAME} -o -l
 
 ## clean: clean up the build binaries
 .PHONY: clean
@@ -56,8 +65,8 @@ clean: confirm
 install:
 	@mkdir -p $(INSTALL_DIR)
 	@echo "Copying binary to $(INSTALL_DIR)..."
-	@cp ${BINARY_NAME}.exe $(INSTALL_DIR)/
+	@cp ${BUILD_DIR}/${BINARY_NAME} $(INSTALL_DIR)/
 	@echo "Installation complete! The binary has been copied to $(INSTALL_DIR)."
-	@echo "To make it available in your PATH, add $(APPDATA)\HarzMindCode to your environment variables manually."
+	@echo "To make it available in your PATH, add $(APPDATA)/HarzMindCode to your environment variables manually."
 	@echo "On Windows, go to System Properties > Environment Variables and edit the User PATH."
 	@echo "Please restart your terminal for changes to take effect."
