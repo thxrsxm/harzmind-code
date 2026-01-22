@@ -2,6 +2,7 @@ package repl
 
 import (
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -104,6 +105,12 @@ func addAllCommands(r *REPL) {
 		"Shows the Brocken",
 		brockenCMD,
 	))
+	// status
+	r.AddCommand(NewCMD(
+		"status",
+		"Shows current session info",
+		statusCMD,
+	))
 	// Sort commands
 	sort.Slice(r.commands, func(i, j int) bool {
 		return r.commands[i].name < r.commands[j].name
@@ -147,6 +154,7 @@ func initCMD(r *REPL, args []string) error {
 func clearCMD(r *REPL, args []string) error {
 	r.messages = []api.Message{}
 	r.messages = append(r.messages, api.Message{Role: "system", Content: ""})
+	r.updateTokens()
 	rnbw.ForgroundColor(rnbw.Green)
 	r.out.Println("Context was successfully deleted")
 	rnbw.ResetColor()
@@ -325,5 +333,32 @@ func treeCMD(r *REPL, args []string) error {
 // brockenCMD displays the ASCII art for the Brocken mountain.
 func brockenCMD(r *REPL, args []string) error {
 	r.out.Stdout.Println(BROCKEN)
+	return nil
+}
+
+// statusCMD shows the current session status, including account, model, working directory and token usage.
+func statusCMD(r *REPL, args []string) error {
+	accountName := "-"
+	model := "-"
+	// Get current account
+	account, err := r.config.GetCurrentAccount()
+	if err == nil {
+		accountName = account.Name
+		model = account.Model
+		if len(model) == 0 {
+			model = "-"
+		}
+	}
+	// Get working directory
+	dir, err := os.Getwd()
+	if err != nil {
+		dir = "-"
+		r.log.Errorf("%v", err)
+	}
+	// Print status
+	r.out.Printf("Account:	'%s'\n", accountName)
+	r.out.Printf("Model:		'%s'\n", model)
+	r.out.Printf("Directory:	'%s'\n", dir)
+	r.out.Printf("Context:	%d tokens\n", r.tokens)
 	return nil
 }

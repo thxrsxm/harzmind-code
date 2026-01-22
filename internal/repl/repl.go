@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+	"github.com/pkoukk/tiktoken-go"
 	"github.com/thxrsxm/harzmind-code/internal/api"
 	"github.com/thxrsxm/harzmind-code/internal/codebase"
 	"github.com/thxrsxm/harzmind-code/internal/common"
@@ -30,6 +31,7 @@ type REPL struct {
 	config   *config.Config
 	reader   *bufio.Reader
 	log      *logger.Logger
+	tokens   int
 	commands []CMD
 	messages []api.Message
 }
@@ -41,6 +43,7 @@ func NewREPL(outputFile bool, log *logger.Logger) (*REPL, error) {
 		running:  false,
 		reader:   bufio.NewReader(os.Stdin),
 		log:      log,
+		tokens:   0,
 		commands: []CMD{},
 		messages: []api.Message{},
 	}
@@ -61,11 +64,27 @@ func NewREPL(outputFile bool, log *logger.Logger) (*REPL, error) {
 	return r, nil
 }
 
-// handleUserMessage processes a user's message.
-// It retrieves the codebase, constructs a system prompt,
-// adds the user's message, and sends it to the API for processing.
-func (r *REPL) handleUserMessage(msg string) (string, error) {
-	r.log.Infof("handling user message (length: %d chars)", len(msg))
+// updateTokens calculates the current token count in the conversation context.
+func (r *REPL) updateTokens() {
+	account, err := r.config.GetCurrentAccount()
+	model := ""
+	if err == nil {
+		model = account.Model
+	}
+	encoding, err := tiktoken.EncodingForModel(model)
+	if err != nil {
+		// Fallback to cl100k_base (GPT-4 encoding)
+		encoding, _ = tiktoken.GetEncoding("cl100k_base")
+	}
+	count := 0
+	for _, v := range r.messages {
+		count += len(encoding.Encode(v.Content, nil, nil))
+	}
+	r.tokens = count
+}
+
+// createSystemPrompt builds the system prompt by combining HZMIND.md and codebase data.
+func (r *REPL) createSystemPrompt() (string, error) {
 	// Get code base
 	files, err := codebase.GetCodeBase(".")
 	if err != nil {
@@ -79,14 +98,26 @@ func (r *REPL) handleUserMessage(msg string) (string, error) {
 	data, err := os.ReadFile(common.PATH_FILE_README)
 	if err != nil {
 		r.out.PrintfWarning("no %s file\n\n", common.FILE_IGNORE)
+		r.log.Errorf("%v", err)
 		data = []byte{}
 	}
-	// Overwrite System Prompt message
-	sysprompt := string(data) + "\n\n## Codebase\n\n" + string(jsonCodeBase)
+	// Create System Prompt message
+	return string(data) + "\n\n## Codebase\n\n" + string(jsonCodeBase), nil
+}
+
+// handleUserMessage processes a user's message.
+// It retrieves the codebase, constructs a system prompt,
+// adds the user's message, and sends it to the API for processing.
+func (r *REPL) handleUserMessage(msg string) (string, error) {
+	r.log.Infof("handling user message (length: %d chars)", len(msg))
+	sysPrompt, err := r.createSystemPrompt()
+	if err != nil {
+		return "", err
+	}
 	if len(r.messages) > 0 {
-		r.messages[0].Content = sysprompt
+		r.messages[0].Content = sysPrompt
 	} else {
-		r.messages = append(r.messages, api.Message{Role: "system", Content: sysprompt})
+		r.messages = append(r.messages, api.Message{Role: "system", Content: sysPrompt})
 	}
 	// Add user message to messages
 	userMsg := api.Message{
@@ -123,6 +154,8 @@ func (r *REPL) handleUserMessage(msg string) (string, error) {
 		Role:    "assistant",
 		Content: resp,
 	})
+	// Update tokens amount
+	r.updateTokens()
 	return resp, nil
 }
 
@@ -160,6 +193,14 @@ func (r *REPL) readPassword() (string, error) {
 	}
 	r.out.Println()
 	return string(bytePassword), nil
+}
+
+func (r *REPL) GetContext() string {
+	var sb strings.Builder
+	for _, v := range r.messages {
+		sb.WriteString(v.Content)
+	}
+	return sb.String()
 }
 
 // AddCommand adds a new command to the REPL.
