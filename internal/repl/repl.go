@@ -27,7 +27,6 @@ import (
 // REPL represents a Read-Eval-Print Loop for the HarzMind Code application.
 type REPL struct {
 	running  bool
-	out      *output.Output
 	config   *config.Config
 	reader   *bufio.Reader
 	tokens   int
@@ -37,7 +36,7 @@ type REPL struct {
 
 // NewREPL creates a new REPL instance.
 // If outputFile is true, it will write output to a file.
-func NewREPL(outputFile bool) (*REPL, error) {
+func NewREPL() (*REPL, error) {
 	r := &REPL{
 		running:  false,
 		reader:   bufio.NewReader(os.Stdin),
@@ -51,12 +50,6 @@ func NewREPL(outputFile bool) (*REPL, error) {
 		return nil, err
 	}
 	r.config = cnfg
-	// Create output
-	o, err := output.NewOutput(common.PATH_DIR_OUT, outputFile)
-	if err != nil {
-		return nil, err
-	}
-	r.out = o
 	// Add commands
 	addAllCommands(r)
 	return r, nil
@@ -95,7 +88,7 @@ func (r *REPL) createSystemPrompt() (string, error) {
 	// Load HZMIND.md
 	data, err := os.ReadFile(common.PATH_FILE_README)
 	if err != nil {
-		r.out.PrintfWarning("no %s file\n\n", common.FILE_IGNORE)
+		output.PrintfWarning("no %s file\n\n", common.FILE_IGNORE)
 		logger.Log(logger.ERROR, "%v", err)
 		data = []byte{}
 	}
@@ -172,8 +165,10 @@ func (r *REPL) printTitle() {
 func (r *REPL) readInput(writeToFile bool) (string, error) {
 	input, err := r.reader.ReadString('\n')
 	// Write user input to output file
-	if writeToFile && r.out.File != nil {
-		r.out.File.Print(input)
+	if writeToFile {
+		output.SetWriteMode(output.FILE)
+		output.Print(input)
+		output.SetWriteMode(output.ALL)
 	}
 	// Handle input error
 	if err != nil {
@@ -189,7 +184,7 @@ func (r *REPL) readPassword() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	r.out.Println()
+	output.Println()
 	return string(bytePassword), nil
 }
 
@@ -228,7 +223,7 @@ func (r *REPL) Run() {
 	// Login to current account
 	if account, err := r.config.GetCurrentAccount(); err == nil {
 		rnbw.ForgroundColor(rnbw.Green)
-		r.out.Printf("\nSuccessfully logged in to %s\n", account.Name)
+		output.Printf("\nSuccessfully logged in to %s\n", account.Name)
 		rnbw.ResetColor()
 		logger.Log(logger.INFO, "logged in to '%s'", account.Name)
 	}
@@ -236,26 +231,26 @@ func (r *REPL) Run() {
 	defer func() {
 		logger.Log(logger.INFO, "%s", "graceful cleanup")
 		logger.Close()
-		r.out.CloseOutput()
+		output.Close()
 	}()
 	logger.Log(logger.INFO, "%s", "REPL started")
 	for r.running {
 		rnbw.ResetColor()
-		r.out.Println()
+		output.Println()
 		// Show no account warning
 		if _, err := r.config.GetCurrentAccount(); err != nil {
-			r.out.PrintfWarning("no account\n\n")
+			output.PrintfWarning("no account\n\n")
 		}
 		// Show no ignore file warning
 		if !codebase.IgnoreFileExists() {
-			r.out.PrintfWarning("no %s file\n\n", common.FILE_IGNORE)
+			output.PrintfWarning("no %s file\n\n", common.FILE_IGNORE)
 		}
 		rnbw.ForgroundColor(rnbw.Green)
-		r.out.Print("> ")
+		output.Print("> ")
 		rnbw.ResetColor()
 		input, err := r.readInput(true)
 		if err != nil {
-			r.out.PrintfError("%v\n", err)
+			output.PrintfError("%v\n", err)
 			logger.Log(logger.ERROR, "%v", err)
 			continue
 		}
@@ -265,26 +260,26 @@ func (r *REPL) Run() {
 		}
 		// Handle slash command
 		if input[0] == '/' && len(input) > 1 {
-			r.out.Println()
+			output.Println()
 			args := strings.Split(input[1:], " ")
 			if len(args) >= 1 {
 				err := r.HandleCommand(strings.ToLower(args[0]), args[1:])
 				if err != nil {
-					r.out.PrintfError("%v\n", err)
+					output.PrintfError("%v\n", err)
 					logger.Log(logger.ERROR, "%v", err)
 				}
 			} else {
-				r.out.PrintlnError("unknown command")
+				output.PrintlnError("unknown command")
 			}
 			continue
 		}
 		// Handle user message
 		resp, err := r.handleUserMessage(input)
 		if err != nil {
-			r.out.PrintfError("%v\n", err)
+			output.PrintfError("%v\n", err)
 			logger.Log(logger.ERROR, "%v", err)
 			continue
 		}
-		r.out.Printf("\n%s\n", resp)
+		output.Printf("\n%s\n", resp)
 	}
 }

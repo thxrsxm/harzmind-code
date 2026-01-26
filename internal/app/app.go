@@ -10,6 +10,7 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal/args"
 	"github.com/thxrsxm/harzmind-code/internal/common"
 	"github.com/thxrsxm/harzmind-code/internal/logger"
+	"github.com/thxrsxm/harzmind-code/internal/output"
 	"github.com/thxrsxm/harzmind-code/internal/repl"
 	"github.com/thxrsxm/harzmind-code/internal/setup"
 	"github.com/thxrsxm/rnbw"
@@ -30,6 +31,15 @@ func Run() {
 		defer logger.Close()
 	}
 	logger.Log(logger.INFO, "%s", "HarzMind Code started")
+	// Initialize ouput
+	err := output.Init(common.PATH_DIR_OUT, *args.OutputFlag)
+	if err != nil {
+		rnbw.ForgroundColor(rnbw.Red)
+		fmt.Fprintf(os.Stdout, "%v\n", err)
+		rnbw.ResetColor()
+		logger.Log(logger.ERROR, "%v", err)
+		os.Exit(1)
+	}
 	// Setup config file
 	if err := setup.SetupConfigFile(); err != nil {
 		msg := fmt.Sprintf("setting up config file: %v", err)
@@ -67,7 +77,7 @@ func Run() {
 		logger.Log(logger.INFO, "%s", "project initiated")
 	}
 	// Create new REPL
-	repl, err := repl.NewREPL(*args.OutputFlag)
+	repl, err := repl.NewREPL()
 	if err != nil {
 		rnbw.ForgroundColor(rnbw.Red)
 		fmt.Fprintf(os.Stdout, "%v\n", err)

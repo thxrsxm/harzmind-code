@@ -1,160 +1,199 @@
-// Package output manages multi-destination output handling,
-// supporting simultaneous printing to stdout and optional timestamped Markdown files
-// for conversation logging, with integrated colorized warning and error messaging.
+// Package output supporting concurrent writes to stdout, files, or both.
+// It provides a singleton pattern for output handling, with mode-based control.
 package output
 
 import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/thxrsxm/rnbw"
 )
 
-// OutputWriter represents a writer for output.
-type OutputWriter struct {
-	writer io.Writer
+// WriterType defines the targets where output can be written, allowing selective redirection.
+type WriterType int
+
+// Constants for WriterType to specify output destinations.
+const (
+	// Write to all available targets (stdout and file).
+	ALL WriterType = iota
+	// Write to stdout only.
+	STDOUT
+	// Write to file only.
+	FILE
+)
+
+// out is a singleton struct for managing output writers and modes.
+type out struct {
+	// Map of writers keyed by type.
+	writer map[WriterType]*outWriter
+	// Current mode determining where output goes.
+	mode WriterType
+	// Mutex to ensure thread-safe operations on writers.
+	mu sync.Mutex
 }
 
-// NewOutputWriter creates a new OutputWriter instance.
-func NewOutputWriter(writer io.Writer) *OutputWriter {
-	return &OutputWriter{writer: writer}
-}
+var (
+	// instance holds the single out instance.
+	instance *out
+	// once ensures that Init is called only once, implementing the singleton pattern.
+	once sync.Once
+)
 
-// Print writes the given arguments to the output writer.
-func (w *OutputWriter) Print(a ...any) {
-	if w.writer == nil {
-		return
-	}
-	fmt.Fprint(w.writer, a...)
-}
-
-// Println writes the given arguments to the output writer followed by a newline.
-func (w *OutputWriter) Println(a ...any) {
-	if w.writer == nil {
-		return
-	}
-	fmt.Fprintln(w.writer, a...)
-}
-
-// Printf writes a formatted string to the output writer.
-func (w *OutputWriter) Printf(format string, a ...any) {
-	if w.writer == nil {
-		return
-	}
-	fmt.Fprintf(w.writer, format, a...)
-}
-
-// Output represents a collection of output writers.
-type Output struct {
-	writer []OutputWriter
-	Stdout *OutputWriter
-	File   *OutputWriter
-}
-
-// NewOutput creates a new Output instance.
-func NewOutput(outPath string, writeToFile bool) (*Output, error) {
-	o := &Output{writer: []OutputWriter{}}
-	// Add stdout writer to output
-	o.writer = append(o.writer, *NewOutputWriter(os.Stdout))
-	o.Stdout = &o.writer[0]
-	// Prepare to write output to file
-	if writeToFile {
-		// Check out directory not exists
-		if _, err := os.Stat(outPath); os.IsNotExist(err) {
-			// Create out directory
-			err := os.Mkdir(outPath, 0755)
+// Init initializes the output system with a directory for output files and a flag for file writing.
+// It sets up writers for stdout and optionally for a timestamped markdown file in the specified path.
+func Init(outPath string, writeToFile bool) error {
+	var err error
+	once.Do(func() {
+		instance = &out{writer: make(map[WriterType]*outWriter), mode: ALL}
+		// Add stdout writer to output
+		instance.writer[STDOUT] = newOutWriter(os.Stdout)
+		// Prepare to write output to file
+		if writeToFile {
+			// Check out directory not exists
+			if _, err := os.Stat(outPath); os.IsNotExist(err) {
+				// Create out directory
+				err := os.Mkdir(outPath, 0755)
+				if err != nil {
+					return
+				}
+			}
+			// Set up out file with timestamp-based name
+			outFilePath := fmt.Sprintf("%s/hzmind_%s.md", outPath, time.Now().Format("2006-01-02_15-04-05"))
+			outFile, err := os.OpenFile(outFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 			if err != nil {
-				return nil, err
+				return
+			}
+			instance.writer[FILE] = newOutWriter(outFile)
+		}
+	})
+	return err
+}
+
+// Close closes all output writers.
+func Close() {
+	if instance != nil {
+		for _, v := range instance.writer {
+			if closer, ok := v.writer.(io.Closer); ok {
+				closer.Close()
 			}
 		}
-		// Set up out file with timestamp-based name
-		outFilePath := fmt.Sprintf("%s/hzmind_%s.md", outPath, time.Now().Format("2006-01-02_15-04-05"))
-		outFile, err := os.OpenFile(outFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-		if err != nil {
-			return nil, err
+	}
+}
+
+// Print prints the provided values to the current output targets without a newline.
+func Print(a ...any) {
+	o, err := getOut()
+	if err != nil {
+		return
+	}
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	for k, v := range o.writer {
+		if o.mode != ALL && o.mode != k {
+			continue
 		}
-		o.writer = append(o.writer, *NewOutputWriter(outFile))
-		o.File = &o.writer[1]
+		v.print(a...)
 	}
-	return o, nil
 }
 
-// CloseOutput closes all output writers.
-func (o *Output) CloseOutput() {
-	for _, v := range o.writer {
-		if closer, ok := v.writer.(io.Closer); ok {
-			closer.Close()
+// Println prints the provided values to the current output targets with a newline.
+func Println(a ...any) {
+	o, err := getOut()
+	if err != nil {
+		return
+	}
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	for k, v := range o.writer {
+		if o.mode != ALL && o.mode != k {
+			continue
 		}
+		v.println(a...)
 	}
 }
 
-// Print writes the given arguments to all output writers.
-func (o *Output) Print(a ...any) {
-	for _, v := range o.writer {
-		v.Print(a...)
+// Printf prints a formatted string to the current output targets.
+func Printf(format string, a ...any) {
+	o, err := getOut()
+	if err != nil {
+		return
+	}
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	for k, v := range o.writer {
+		if o.mode != ALL && o.mode != k {
+			continue
+		}
+		v.printf(format, a...)
 	}
 }
 
-// Println writes the given arguments to all output writers followed by a newline.
-func (o *Output) Println(a ...any) {
-	for _, v := range o.writer {
-		v.Println(a...)
-	}
-}
-
-// Printf writes a formatted string to all output writers.
-func (o *Output) Printf(format string, a ...any) {
-	for _, v := range o.writer {
-		v.Printf(format, a...)
-	}
-}
-
-// PrintWarning prints a warning message.
-func (o *Output) PrintWarning(a ...any) {
+// PrintWarning prints a warning message with color styling to yellow.
+func PrintWarning(a ...any) {
 	rnbw.ForgroundColor(rnbw.Yellow)
-	o.Print("[WARNING] ")
-	o.Print(a...)
+	Print("[WARNING] ")
+	Print(a...)
 	rnbw.ResetColor()
 }
 
-// PrintlnWarning prints a warning message followed by a newline.
-func (o *Output) PrintlnWarning(a ...any) {
+// PrintlnWarning prints a warning message line with color styling.
+func PrintlnWarning(a ...any) {
 	rnbw.ForgroundColor(rnbw.Yellow)
-	o.Print("[WARNING] ")
-	o.Println(a...)
+	Print("[WARNING] ")
+	Println(a...)
 	rnbw.ResetColor()
 }
 
-// PrintfWarning prints a warning message with a formatted string.
-func (o *Output) PrintfWarning(format string, a ...any) {
+// PrintfWarning prints a formatted warning message with color styling.
+func PrintfWarning(format string, a ...any) {
 	rnbw.ForgroundColor(rnbw.Yellow)
-	o.Print("[WARNING] ")
-	o.Printf(format, a...)
+	Print("[WARNING] ")
+	Printf(format, a...)
 	rnbw.ResetColor()
 }
 
-// PrintError prints an error message.
-func (o *Output) PrintError(a ...any) {
+// PrintError prints an error message with color styling to red.
+func PrintError(a ...any) {
 	rnbw.ForgroundColor(rnbw.Red)
-	o.Print("[ERROR] ")
-	o.Print(a...)
+	Print("[ERROR] ")
+	Print(a...)
 	rnbw.ResetColor()
 }
 
-// PrintlnError prints an error message followed by a newline.
-func (o *Output) PrintlnError(a ...any) {
+// PrintlnError prints an error message line with color styling.
+func PrintlnError(a ...any) {
 	rnbw.ForgroundColor(rnbw.Red)
-	o.Print("[ERROR] ")
-	o.Println(a...)
+	Print("[ERROR] ")
+	Println(a...)
 	rnbw.ResetColor()
 }
 
-// PrintlnError prints an error message followed by a newline.
-func (o *Output) PrintfError(format string, a ...any) {
+// PrintfError prints a formatted error message with color styling.
+func PrintfError(format string, a ...any) {
 	rnbw.ForgroundColor(rnbw.Red)
-	o.Print("[ERROR] ")
-	o.Printf(format, a...)
+	Print("[ERROR] ")
+	Printf(format, a...)
 	rnbw.ResetColor()
+}
+
+// SetWriteMode sets the output mode to control where writes occur.
+func SetWriteMode(mode WriterType) {
+	o, err := getOut()
+	if err != nil {
+		return
+	}
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	o.mode = mode
+}
+
+// getOut retrieves the singleton out instance, or returns an error if not initialized.
+func getOut() (*out, error) {
+	if instance == nil {
+		return nil, fmt.Errorf("Init() must be called first")
+	}
+	return instance, nil
 }

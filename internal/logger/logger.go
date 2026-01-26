@@ -31,8 +31,6 @@ var (
 	instance *logWriter
 	// once ensures that Init is called only once, implementing the singleton pattern.
 	once sync.Once
-	// mu provides global synchronization, though primarily used in the singleton initialization.
-	mu sync.Mutex
 )
 
 // logWriter encapsulates the file handle and its own mutex for thread-safe writing.

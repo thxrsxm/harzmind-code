@@ -12,6 +12,7 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal/common"
 	"github.com/thxrsxm/harzmind-code/internal/executor"
 	"github.com/thxrsxm/harzmind-code/internal/logger"
+	"github.com/thxrsxm/harzmind-code/internal/output"
 	"github.com/thxrsxm/harzmind-code/internal/setup"
 	"github.com/thxrsxm/rnbw"
 )
@@ -120,19 +121,20 @@ func addAllCommands(r *REPL) {
 
 // helpCMD displays help information for all commands.
 func helpCMD(r *REPL, args []string) error {
+	output.SetWriteMode(output.STDOUT)
 	for _, v := range r.commands {
-		r.out.Stdout.Printf("'/%s' ", v.name)
+		output.Printf("'/%s' ", v.name)
 		rnbw.ForgroundColor(rnbw.Gray)
-		r.out.Stdout.Printf("- %s\n", v.info)
+		output.Printf("- %s\n", v.info)
 		rnbw.ResetColor()
 	}
+	output.SetWriteMode(output.ALL)
 	return nil
 }
 
 // exitCMD exits the REPL.
 func exitCMD(r *REPL, args []string) error {
 	r.running = false
-	r.out.CloseOutput()
 	logger.Log(logger.INFO, "%s", "exit")
 	return nil
 }
@@ -144,7 +146,7 @@ func initCMD(r *REPL, args []string) error {
 		return err
 	}
 	rnbw.ForgroundColor(rnbw.Green)
-	r.out.Println("Project initiated")
+	output.Println("Project initiated")
 	rnbw.ResetColor()
 	logger.Log(logger.INFO, "%s", "project initiated")
 	return nil
@@ -156,7 +158,7 @@ func clearCMD(r *REPL, args []string) error {
 	r.messages = append(r.messages, api.Message{Role: "system", Content: ""})
 	r.updateTokens()
 	rnbw.ForgroundColor(rnbw.Green)
-	r.out.Println("Context was successfully deleted")
+	output.Println("Context was successfully deleted")
 	rnbw.ResetColor()
 	logger.Log(logger.INFO, "%s", "completed context clear")
 	return nil
@@ -174,7 +176,7 @@ func modelsCMD(r *REPL, args []string) error {
 		return err
 	}
 	for _, v := range models {
-		r.out.Println(v)
+		output.Println(v)
 	}
 	return nil
 }
@@ -192,9 +194,9 @@ func bashCMD(r *REPL, args []string) error {
 	if err != nil {
 		rnbw.ForgroundColor(rnbw.Red)
 	}
-	r.out.Print(out)
+	output.Print(out)
 	if len(out) >= 1 && out[len(out)-1] != '\n' {
-		r.out.Println()
+		output.Println()
 	}
 	return nil
 }
@@ -202,10 +204,10 @@ func bashCMD(r *REPL, args []string) error {
 // infoCMD displays information about the HarzMind Code application.
 func infoCMD(r *REPL, args []string) error {
 	rnbw.ForgroundColor(rnbw.Green)
-	r.out.Print("HarzMind Code")
+	output.Print("HarzMind Code")
 	rnbw.ResetColor()
-	r.out.Printf(" v%s\n", internal.VERSION_DATE)
-	r.out.Println("Created by Erik Andrè Thürsam")
+	output.Printf(" v%s\n", internal.VERSION_DATE)
+	output.Println("Created by Erik Andrè Thürsam")
 	return nil
 }
 
@@ -214,9 +216,9 @@ func accCMD(r *REPL, args []string) error {
 	if len(args) == 0 {
 		// Show all accounts
 		for i, v := range r.config.Accounts {
-			r.out.Println(v)
+			output.Println(v)
 			if i < len(r.config.Accounts)-1 {
-				r.out.Println()
+				output.Println()
 			}
 		}
 		return nil
@@ -230,7 +232,7 @@ func accCMD(r *REPL, args []string) error {
 			}
 			if err := r.config.SaveConfig(common.PATH_FILE_CONFIG); err != nil {
 				rnbw.ForgroundColor(rnbw.Green)
-				r.out.Printf("Successfully created the account '%s'\n", account.Name)
+				output.Printf("Successfully created the account '%s'\n", account.Name)
 				rnbw.ResetColor()
 				logger.Log(logger.INFO, "created account '%s'", account.Name)
 			}
@@ -243,7 +245,7 @@ func accCMD(r *REPL, args []string) error {
 				return err
 			}
 			rnbw.ForgroundColor(rnbw.Green)
-			r.out.Printf("Successfully logged out from '%s'\n", account)
+			output.Printf("Successfully logged out from '%s'\n", account)
 			rnbw.ResetColor()
 			logger.Log(logger.INFO, "logged out from '%s'", account)
 			return nil
@@ -262,7 +264,7 @@ func accCMD(r *REPL, args []string) error {
 			}
 			r.config.CurrentAccountName = args[1]
 			rnbw.ForgroundColor(rnbw.Green)
-			r.out.Printf("Successfully logged in to '%s'\n", args[1])
+			output.Printf("Successfully logged in to '%s'\n", args[1])
 			rnbw.ResetColor()
 			logger.Log(logger.INFO, "logged in to '%s'", args[1])
 			return r.config.SaveConfig(common.PATH_FILE_CONFIG)
@@ -272,7 +274,7 @@ func accCMD(r *REPL, args []string) error {
 			if err := r.config.SaveConfig(common.PATH_FILE_CONFIG); err != nil {
 				return err
 			}
-			r.out.Printf("Successfully removed account '%s'\n", args[1])
+			output.Printf("Successfully removed account '%s'\n", args[1])
 			logger.Log(logger.WARNING, "removed account '%s'", args[1])
 			return nil
 		case "info":
@@ -281,7 +283,7 @@ func accCMD(r *REPL, args []string) error {
 			if err != nil {
 				return err
 			}
-			r.out.Println(account)
+			output.Println(account)
 		default:
 			return fmt.Errorf("command not found")
 		}
@@ -304,7 +306,7 @@ func modelCMD(r *REPL, args []string) error {
 		return err
 	}
 	rnbw.ForgroundColor(rnbw.Green)
-	r.out.Printf("Successfully changed model to '%s' for account '%s'\n", args[0], r.config.CurrentAccountName)
+	output.Printf("Successfully changed model to '%s' for account '%s'\n", args[0], r.config.CurrentAccountName)
 	rnbw.ResetColor()
 	logger.Log(logger.INFO, "changed model to '%s' for account '%s'", args[0], r.config.CurrentAccountName)
 	return nil
@@ -326,13 +328,15 @@ func treeCMD(r *REPL, args []string) error {
 	if err != nil {
 		return err
 	}
-	r.out.Print(codebase.Tree(files))
+	output.Print(codebase.Tree(files))
 	return nil
 }
 
 // brockenCMD displays the ASCII art for the Brocken mountain.
 func brockenCMD(r *REPL, args []string) error {
-	r.out.Stdout.Println(BROCKEN)
+	output.SetWriteMode(output.STDOUT)
+	output.Println(BROCKEN)
+	output.SetWriteMode(output.ALL)
 	return nil
 }
 
@@ -356,9 +360,9 @@ func statusCMD(r *REPL, args []string) error {
 		logger.Log(logger.ERROR, "%v", err)
 	}
 	// Print status
-	r.out.Printf("Account:	'%s'\n", accountName)
-	r.out.Printf("Model:		'%s'\n", model)
-	r.out.Printf("Directory:	'%s'\n", dir)
-	r.out.Printf("Context:	%d tokens\n", r.tokens)
+	output.Printf("Account:	'%s'\n", accountName)
+	output.Printf("Model:		'%s'\n", model)
+	output.Printf("Directory:	'%s'\n", dir)
+	output.Printf("Context:	%d tokens\n", r.tokens)
 	return nil
 }
