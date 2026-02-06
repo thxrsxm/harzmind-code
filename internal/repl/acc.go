@@ -6,6 +6,7 @@ import (
 
 	"github.com/thxrsxm/harzmind-code/internal/common"
 	"github.com/thxrsxm/harzmind-code/internal/config"
+	"github.com/thxrsxm/harzmind-code/internal/input"
 )
 
 // handleAccountCreation handles the creation of a new account.
@@ -15,7 +16,7 @@ func (r *REPL) handleAccountCreation() (*config.Account, error) {
 	fmt.Println("Create account")
 	// Get account name
 	fmt.Print("Name: ")
-	name, err := r.readInput(false)
+	name, err := input.ReadInput(false)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +26,7 @@ func (r *REPL) handleAccountCreation() (*config.Account, error) {
 	}
 	// Get API url
 	fmt.Print("API Url: ")
-	apiUrl, err := r.readInput(false)
+	apiUrl, err := input.ReadInput(false)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +36,7 @@ func (r *REPL) handleAccountCreation() (*config.Account, error) {
 	}
 	// Get API token (secure)
 	fmt.Print("API Token: ")
-	apiKey, err := r.readPassword()
+	apiKey, err := input.ReadPassword()
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (r *REPL) handleAccountCreation() (*config.Account, error) {
 		return nil, fmt.Errorf("api token cannot be empty")
 	}
 	fmt.Print("Model (optional): ")
-	model, err := r.readInput(false)
+	model, err := input.ReadInput(false)
 	if err != nil {
 		return nil, err
 	}

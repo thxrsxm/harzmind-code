@@ -9,6 +9,7 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal"
 	"github.com/thxrsxm/harzmind-code/internal/args"
 	"github.com/thxrsxm/harzmind-code/internal/common"
+	"github.com/thxrsxm/harzmind-code/internal/input"
 	"github.com/thxrsxm/harzmind-code/internal/logger"
 	"github.com/thxrsxm/harzmind-code/internal/output"
 	"github.com/thxrsxm/harzmind-code/internal/repl"
@@ -21,8 +22,7 @@ func Run() {
 	args.Parse()
 	// Initialize logger
 	if *args.LogFlag {
-		err := logger.Init(common.PATH_FILE_LOG)
-		if err != nil {
+		if err := logger.Init(common.PATH_FILE_LOG); err != nil {
 			rnbw.ForgroundColor(rnbw.Red)
 			fmt.Fprintf(os.Stderr, "[ERROR] failed to initialize logger: %v\n", err)
 			rnbw.ResetColor()
@@ -32,8 +32,15 @@ func Run() {
 	}
 	logger.Log(logger.INFO, "%s", "HarzMind Code started")
 	// Initialize ouput
-	err := output.Init(common.PATH_DIR_OUT, *args.OutputFlag)
-	if err != nil {
+	if err := output.Init(common.PATH_DIR_OUT, *args.OutputFlag); err != nil {
+		rnbw.ForgroundColor(rnbw.Red)
+		fmt.Fprintf(os.Stdout, "%v\n", err)
+		rnbw.ResetColor()
+		logger.Log(logger.ERROR, "%v", err)
+		os.Exit(1)
+	}
+	// Initialize input
+	if err := input.Init(); err != nil {
 		rnbw.ForgroundColor(rnbw.Red)
 		fmt.Fprintf(os.Stdout, "%v\n", err)
 		rnbw.ResetColor()
@@ -64,8 +71,7 @@ func Run() {
 	}
 	// Init project
 	if *args.InitFlag {
-		err := setup.SetupProjectDir()
-		if err != nil {
+		if err := setup.SetupProjectDir(); err != nil {
 			rnbw.ForgroundColor(rnbw.Red)
 			fmt.Fprintf(os.Stderr, "[ERROR] %v\n", err)
 			rnbw.ResetColor()

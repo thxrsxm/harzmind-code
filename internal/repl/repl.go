@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -18,10 +17,10 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal/codebase"
 	"github.com/thxrsxm/harzmind-code/internal/common"
 	"github.com/thxrsxm/harzmind-code/internal/config"
+	"github.com/thxrsxm/harzmind-code/internal/input"
 	"github.com/thxrsxm/harzmind-code/internal/logger"
 	"github.com/thxrsxm/harzmind-code/internal/output"
 	"github.com/thxrsxm/rnbw"
-	"golang.org/x/term"
 )
 
 // REPL represents a Read-Eval-Print Loop for the HarzMind Code application.
@@ -162,6 +161,7 @@ func (r *REPL) printTitle() {
 
 // readInput reads a line of input from the user.
 // It also writes the input to the output file if available.
+/*
 func (r *REPL) readInput(writeToFile bool) (string, error) {
 	input, err := r.reader.ReadString('\n')
 	// Write user input to output file
@@ -187,6 +187,7 @@ func (r *REPL) readPassword() (string, error) {
 	output.Println()
 	return string(bytePassword), nil
 }
+*/
 
 func (r *REPL) GetContext() string {
 	var sb strings.Builder
@@ -248,7 +249,7 @@ func (r *REPL) Run() {
 		rnbw.ForgroundColor(rnbw.Green)
 		output.Print("> ")
 		rnbw.ResetColor()
-		input, err := r.readInput(true)
+		input, err := input.ReadInput(true)
 		if err != nil {
 			output.PrintfError("%v\n", err)
 			logger.Log(logger.ERROR, "%v", err)

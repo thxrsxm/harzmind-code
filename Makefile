@@ -52,7 +52,7 @@ export: genver
 ## run: run the application
 .PHONY: run
 run:
-	${BUILD_DIR}/${BINARY_NAME} -o -l
+	${BUILD_DIR}/${BINARY_NAME} -l
 
 ## clean: clean up the build binaries
 .PHONY: clean
