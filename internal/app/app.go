@@ -42,7 +42,7 @@ func Run() {
 	args.Parse()
 	// Initialize binary data directory
 	if err := setup.SetupBinaryDataDir(); err != nil {
-		rnbw.ForgroundColor(rnbw.Red)
+		rnbw.ForegroundColor(rnbw.Red)
 		fmt.Fprintf(os.Stdout, "%v\n", err)
 		rnbw.ResetColor()
 		os.Exit(1)
@@ -50,19 +50,19 @@ func Run() {
 	// Initialize project directory structure
 	if *args.InitFlag {
 		if err := setup.SetupProjectDir(); err != nil {
-			rnbw.ForgroundColor(rnbw.Red)
+			rnbw.ForegroundColor(rnbw.Red)
 			fmt.Fprintf(os.Stderr, "[ERROR] %v\n", err)
 			rnbw.ResetColor()
 			os.Exit(1)
 		}
-		rnbw.ForgroundColor(rnbw.Green)
+		rnbw.ForegroundColor(rnbw.Green)
 		fmt.Fprint(os.Stdout, "Project initiated :)\n")
 		rnbw.ResetColor()
 	}
 	// Initialize logger
 	if *args.LogFlag {
 		if err := logger.Init(common.PATH_FILE_LOG); err != nil {
-			rnbw.ForgroundColor(rnbw.Red)
+			rnbw.ForegroundColor(rnbw.Red)
 			fmt.Fprintf(os.Stderr, "[ERROR] failed to initialize logger: %v\n\n", err)
 			rnbw.ResetColor()
 			args.PrintUsage()
@@ -78,7 +78,7 @@ func Run() {
 	}
 	// Initialize ouput
 	if err := output.Init(common.PATH_DIR_OUT, *args.OutputFlag); err != nil {
-		rnbw.ForgroundColor(rnbw.Red)
+		rnbw.ForegroundColor(rnbw.Red)
 		fmt.Fprintf(os.Stdout, "%v\n", err)
 		rnbw.ResetColor()
 		logger.Log(logger.ERROR, "%v", err)
@@ -86,7 +86,7 @@ func Run() {
 	}
 	// Initialize input
 	if err := input.Init(); err != nil {
-		rnbw.ForgroundColor(rnbw.Red)
+		rnbw.ForegroundColor(rnbw.Red)
 		fmt.Fprintf(os.Stdout, "%v\n", err)
 		rnbw.ResetColor()
 		logger.Log(logger.ERROR, "%v", err)
@@ -96,7 +96,7 @@ func Run() {
 	config, err := setup.SetupConfigFile()
 	if err != nil {
 		msg := fmt.Sprintf("setting up config file: %v", err)
-		rnbw.ForgroundColor(rnbw.Red)
+		rnbw.ForegroundColor(rnbw.Red)
 		fmt.Fprintf(os.Stdout, "[ERROR] %s\n", msg)
 		rnbw.ResetColor()
 		logger.Log(logger.ERROR, "%s", msg)
@@ -130,7 +130,7 @@ func Run() {
 		return nil
 	})
 	if err != nil {
-		rnbw.ForgroundColor(rnbw.Red)
+		rnbw.ForegroundColor(rnbw.Red)
 		fmt.Fprintf(os.Stdout, "%v\n", err)
 		rnbw.ResetColor()
 		logger.Log(logger.ERROR, "%v", err)
@@ -169,7 +169,7 @@ func Run() {
 		"info",
 		"Show info",
 		func(arg string) error {
-			rnbw.ForgroundColor(rnbw.Green)
+			rnbw.ForegroundColor(rnbw.Green)
 			output.Print("HarzMind Code")
 			rnbw.ResetColor()
 			output.Printf(" v%s\n", internal.VERSION_DATE)
@@ -214,7 +214,7 @@ func Run() {
 		func(arg string) error {
 			out, err := executor.ExecuteBash(arg)
 			if err != nil {
-				rnbw.ForgroundColor(rnbw.Red)
+				rnbw.ForegroundColor(rnbw.Red)
 			}
 			output.Print(out)
 			if len(out) >= 1 && out[len(out)-1] != '\n' {
@@ -246,7 +246,7 @@ func Run() {
 		"Clear session context",
 		func(arg string) error {
 			llmClient.ClearMessages()
-			rnbw.ForgroundColor(rnbw.Green)
+			rnbw.ForegroundColor(rnbw.Green)
 			output.Println("Context was successfully deleted")
 			rnbw.ResetColor()
 			logger.Log(logger.INFO, "%s", "completed context clearing")
@@ -282,7 +282,7 @@ func Run() {
 				return err
 			}
 			// Show success message
-			rnbw.ForgroundColor(rnbw.Green)
+			rnbw.ForegroundColor(rnbw.Green)
 			output.Printf("Successfully changed model to '%s' for account '%s'\n", arg, account.Name)
 			rnbw.ResetColor()
 			logger.Log(logger.INFO, "changed model to '%s' for account '%s'", arg, account.Name)
@@ -320,7 +320,7 @@ func Run() {
 			if err != nil {
 				return err
 			}
-			rnbw.ForgroundColor(rnbw.Green)
+			rnbw.ForegroundColor(rnbw.Green)
 			output.Println("Project initiated")
 			rnbw.ResetColor()
 			logger.Log(logger.INFO, "%s", "project initiated")
@@ -342,7 +342,7 @@ func Run() {
 			output.PrintWarning("no account\n")
 			logger.Log(logger.WARNING, "%s", "failed to auto-login")
 		} else {
-			rnbw.ForgroundColor(rnbw.Green)
+			rnbw.ForegroundColor(rnbw.Green)
 			output.Printf("Successfully logged in to %s\n", account.Name)
 			rnbw.ResetColor()
 			logger.Log(logger.INFO, "logged in to '%s'", account.Name)

@@ -46,7 +46,7 @@ func (r *REPL) PrintHelp() error {
 	output.SetWriteMode(output.STDOUT)
 	for _, v := range r.commands {
 		output.Printf("'/%s' ", v.name)
-		rnbw.ForgroundColor(rnbw.Gray)
+		rnbw.ForegroundColor(rnbw.Gray)
 		output.Printf("- %s\n", v.info)
 		rnbw.ResetColor()
 	}
@@ -68,7 +68,7 @@ func (r *REPL) Run() {
 	for r.running {
 		rnbw.ResetColor()
 		output.Println()
-		rnbw.ForgroundColor(rnbw.Green)
+		rnbw.ForegroundColor(rnbw.Green)
 		output.Print("> ")
 		rnbw.ResetColor()
 		input, err := input.ReadInput(true)

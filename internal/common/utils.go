@@ -54,7 +54,7 @@ func IsValidURL(s string) bool {
 // PrintTitle displays the HarzMind Code title and help message.
 func PrintTitle() {
 	fmt.Printf("\n\nWelcome to %s!\n\n\n", rnbw.String(rnbw.Green, "HarzMind Code"))
-	rnbw.ForgroundColor(rnbw.Green)
+	rnbw.ForegroundColor(rnbw.Green)
 	fmt.Print(TITLE)
 	rnbw.ResetColor()
 	fmt.Print("\n\n\n")

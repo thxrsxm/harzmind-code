@@ -133,7 +133,7 @@ func Printf(format string, a ...any) {
 
 // PrintWarning prints a warning message with color styling to yellow.
 func PrintWarning(a ...any) {
-	rnbw.ForgroundColor(rnbw.Yellow)
+	rnbw.ForegroundColor(rnbw.Yellow)
 	Print("[WARNING] ")
 	Print(a...)
 	rnbw.ResetColor()
@@ -141,7 +141,7 @@ func PrintWarning(a ...any) {
 
 // PrintlnWarning prints a warning message line with color styling.
 func PrintlnWarning(a ...any) {
-	rnbw.ForgroundColor(rnbw.Yellow)
+	rnbw.ForegroundColor(rnbw.Yellow)
 	Print("[WARNING] ")
 	Println(a...)
 	rnbw.ResetColor()
@@ -149,7 +149,7 @@ func PrintlnWarning(a ...any) {
 
 // PrintfWarning prints a formatted warning message with color styling.
 func PrintfWarning(format string, a ...any) {
-	rnbw.ForgroundColor(rnbw.Yellow)
+	rnbw.ForegroundColor(rnbw.Yellow)
 	Print("[WARNING] ")
 	Printf(format, a...)
 	rnbw.ResetColor()
@@ -157,7 +157,7 @@ func PrintfWarning(format string, a ...any) {
 
 // PrintError prints an error message with color styling to red.
 func PrintError(a ...any) {
-	rnbw.ForgroundColor(rnbw.Red)
+	rnbw.ForegroundColor(rnbw.Red)
 	Print("[ERROR] ")
 	Print(a...)
 	rnbw.ResetColor()
@@ -165,7 +165,7 @@ func PrintError(a ...any) {
 
 // PrintlnError prints an error message line with color styling.
 func PrintlnError(a ...any) {
-	rnbw.ForgroundColor(rnbw.Red)
+	rnbw.ForegroundColor(rnbw.Red)
 	Print("[ERROR] ")
 	Println(a...)
 	rnbw.ResetColor()
@@ -173,7 +173,7 @@ func PrintlnError(a ...any) {
 
 // PrintfError prints a formatted error message with color styling.
 func PrintfError(format string, a ...any) {
-	rnbw.ForgroundColor(rnbw.Red)
+	rnbw.ForegroundColor(rnbw.Red)
 	Print("[ERROR] ")
 	Printf(format, a...)
 	rnbw.ResetColor()

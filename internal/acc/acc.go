@@ -187,7 +187,7 @@ func (m *AccountManager) HandleCommands(input string) error {
 			if err := m.AddAccount(*account); err != nil {
 				return err
 			}
-			rnbw.ForgroundColor(rnbw.Green)
+			rnbw.ForegroundColor(rnbw.Green)
 			output.Printf("\nSuccessfully created the account '%s'\n", account.Name)
 			rnbw.ResetColor()
 			logger.Log(logger.INFO, "created account '%s'", account.Name)
@@ -198,7 +198,7 @@ func (m *AccountManager) HandleCommands(input string) error {
 			if err != nil {
 				return err
 			}
-			rnbw.ForgroundColor(rnbw.Green)
+			rnbw.ForegroundColor(rnbw.Green)
 			output.Printf("Successfully logged out from '%s'\n", name)
 			rnbw.ResetColor()
 			logger.Log(logger.INFO, "logged out from '%s'", name)
@@ -216,7 +216,7 @@ func (m *AccountManager) HandleCommands(input string) error {
 			if err := m.Login(args[1]); err != nil {
 				return err
 			}
-			rnbw.ForgroundColor(rnbw.Green)
+			rnbw.ForegroundColor(rnbw.Green)
 			output.Printf("Successfully logged in to '%s'\n", args[1])
 			rnbw.ResetColor()
 			logger.Log(logger.INFO, "logged in to '%s'", args[1])
@@ -226,7 +226,7 @@ func (m *AccountManager) HandleCommands(input string) error {
 			if err := m.RemoveAccount(args[1]); err != nil {
 				return err
 			}
-			rnbw.ForgroundColor(rnbw.Green)
+			rnbw.ForegroundColor(rnbw.Green)
 			output.Printf("Successfully removed account '%s'\n", args[1])
 			rnbw.ResetColor()
 			logger.Log(logger.WARNING, "removed account '%s'", args[1])
