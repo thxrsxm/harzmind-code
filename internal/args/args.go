@@ -3,6 +3,8 @@ package args
 
 import (
 	"flag"
+	"fmt"
+	"os"
 )
 
 var (
@@ -18,6 +20,20 @@ var (
 	LogFlag = flag.Bool("l", false, "Enable logging")
 )
 
+func init() {
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n\nOptions:\n", os.Args[0])
+		flag.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "\nIMPORTANT:\n")
+		fmt.Fprintf(os.Stderr, "   You must first initialize the project using the -i flag\n")
+		fmt.Fprintf(os.Stderr, "   before using other features. Run '%s -i' to get started.\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "\nExamples:\n")
+		fmt.Fprintf(os.Stderr, "  %s -i           Initialize project\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s -v           Show version\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s -i -o -l     Init with output and logging\n", os.Args[0])
+	}
+}
+
 // Parse parses the command line flags.
 func Parse() {
 	flag.Parse()
@@ -26,4 +42,8 @@ func Parse() {
 // PrintDefaults prints the default values of the flags.
 func PrintDefaults() {
 	flag.PrintDefaults()
+}
+
+func PrintUsage() {
+	flag.Usage()
 }

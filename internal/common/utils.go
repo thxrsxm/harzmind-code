@@ -1,19 +1,15 @@
 package common
 
 import (
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
-)
+	"runtime"
 
-// GetBinaryPath returns the path of the binary executable.
-func GetBinaryPath() (string, error) {
-	exePath, err := os.Executable()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Dir(exePath), nil
-}
+	"github.com/thxrsxm/harzmind-code/internal/output"
+	"github.com/thxrsxm/rnbw"
+)
 
 // CreateFileIfNotExists creates a file if it does not exist.
 func CreateFileIfNotExists(path string) error {
@@ -53,4 +49,48 @@ func IsValidURL(s string) bool {
 		return false
 	}
 	return true
+}
+
+// PrintTitle displays the HarzMind Code title and help message.
+func PrintTitle() {
+	fmt.Printf("\n\nWelcome to %s!\n\n\n", rnbw.String(rnbw.Green, "HarzMind Code"))
+	rnbw.ForgroundColor(rnbw.Green)
+	fmt.Print(TITLE)
+	rnbw.ResetColor()
+	fmt.Print("\n\n\n")
+}
+
+// PrintBrocken displays the ASCII art for the Brocken mountain.
+func PrintBrocken() {
+	output.SetWriteMode(output.STDOUT)
+	output.Println(BROCKEN)
+	output.SetWriteMode(output.ALL)
+}
+
+func getBinaryDataPath() string {
+	goos := runtime.GOOS
+	homeDir, err := os.UserHomeDir()
+	if err != nil && goos != "windows" {
+		// Fallback to current directory if home dir cannot be determined
+		return "."
+	}
+	switch runtime.GOOS {
+	case "darwin":
+		// macOS: ~/Library/Application Support/hzmind/
+		return filepath.Join(homeDir, "Library", "Application Support", DIR_MAIN)
+	case "linux":
+		// Linux: ~/.config/hzmind/
+		return filepath.Join(homeDir, ".config", DIR_MAIN)
+	case "windows":
+		// Windows: binary path
+		exePath, err := os.Executable()
+		if err != nil {
+			// Fallback to current directory if home dir cannot be determined
+			return "."
+		}
+		return filepath.Dir(exePath)
+	default:
+		// Fallback: ~/.hzmind/
+		return filepath.Join(homeDir, "."+DIR_MAIN)
+	}
 }

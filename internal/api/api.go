@@ -44,10 +44,10 @@ type ModelsResponse struct {
 // SendMessage sends a message to the API and returns the response.
 // It takes the API URL, model, token, and messages as input.
 // It returns the response content and an error if any.
-func SendMessage(url, model, token string, messages []Message) (string, error) {
+func SendMessage(apiURL, model, token string, messages []Message) (string, error) {
 	// Check if the URL is valid.
-	if len(url) == 0 {
-		return "", fmt.Errorf("url is not valid")
+	if len(apiURL) == 0 {
+		return "", fmt.Errorf("api url is not valid")
 	}
 	// Check if the model is valid.
 	if len(model) == 0 {
@@ -68,7 +68,7 @@ func SendMessage(url, model, token string, messages []Message) (string, error) {
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 	// Create a new HTTP request.
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}

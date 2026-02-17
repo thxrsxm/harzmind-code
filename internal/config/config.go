@@ -5,87 +5,63 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
-	"github.com/thxrsxm/harzmind-code/internal/common"
+	"github.com/thxrsxm/harzmind-code/internal/acc"
 )
 
 // Config represents the configuration file structure.
 type Config struct {
-	CurrentAccountName string    `json:"currentAccount"`
-	Accounts           []Account `json:"accounts"`
+	path string
+	data *configData
 }
 
-// GetAccount retrieves an account by name.
-func (c *Config) GetAccount(name string) (*Account, error) {
-	if c.Accounts == nil {
-		return nil, fmt.Errorf("no accounts")
-	}
-	for i := range c.Accounts {
-		if c.Accounts[i].Name == name {
-			return &c.Accounts[i], nil
-		}
-	}
-	return nil, fmt.Errorf("account %s not found", name)
+type configData struct {
+	AccountManager acc.AccountManager `json:"accountManagement"`
 }
 
-// GetCurrentAccount retrieves the currently active account.
-func (c *Config) GetCurrentAccount() (*Account, error) {
-	if len(c.CurrentAccountName) == 0 {
-		return nil, fmt.Errorf("no current account")
+// NewConfig creates a new configuration file.
+func NewConfig(path string) (*Config, error) {
+	// Create a new Config instance and populate it
+	config := &Config{
+		path: path,
 	}
-	return c.GetAccount(c.CurrentAccountName)
+	config.data = newConfigData(config)
+	// Marshal the Config struct to JSON
+	jsonData, err := json.MarshalIndent(config.data, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	// Create or truncate the target file
+	jsonFile, err := os.Create(config.path)
+	if err != nil {
+		return nil, err
+	}
+	defer jsonFile.Close()
+	// Write the JSON data to the file
+	_, err = jsonFile.Write(jsonData)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
 }
 
-// AddAccount adds a new account to the configuration.
-func (c *Config) AddAccount(account Account) error {
-	// Check for existing account to prevent duplicates
-	if _, err := c.GetAccount(account.Name); err == nil {
-		return fmt.Errorf("account %s already exists", account.Name)
-	}
-	c.Accounts = append(c.Accounts, account)
-	return nil
-}
-
-// RemoveAccount removes an account by name.
-func (c *Config) RemoveAccount(name string) {
-	index := -1
-	for i, v := range c.Accounts {
-		if v.Name == name {
-			index = i
-			break
-		}
-	}
-	// Account not found
-	if index == -1 {
-		return
-	}
-	// Remove account
-	c.Accounts = append(c.Accounts[:index], c.Accounts[index+1:]...)
-	if c.CurrentAccountName == name {
-		// Logout
-		c.CurrentAccountName = ""
+func newConfigData(config *Config) *configData {
+	return &configData{
+		AccountManager: *acc.NewAccountManager(func() error { return config.SaveConfig() }),
 	}
 }
 
 // SaveConfig saves the configuration to a file.
-func (c *Config) SaveConfig(path string) error {
+func (c *Config) SaveConfig() error {
 	// Marshal the Config struct to JSON
-	jsonData, err := json.MarshalIndent(c, "", "  ")
+	jsonData, err := json.MarshalIndent(c.data, "", "  ")
 	if err != nil {
 		return err
 	}
-	// Get binary path
-	binDir, err := common.GetBinaryPath()
-	if err != nil {
-		return err
-	}
-	configPath := filepath.Join(binDir, path)
 	// Create or truncate the target file
-	jsonFile, err := os.Create(configPath)
+	jsonFile, err := os.Create(c.path)
 	if err != nil {
 		return err
 	}
@@ -100,14 +76,8 @@ func (c *Config) SaveConfig(path string) error {
 
 // LoadConfig loads the configuration from a file.
 func LoadConfig(path string) (*Config, error) {
-	// Get binary path
-	binDir, err := common.GetBinaryPath()
-	if err != nil {
-		return nil, err
-	}
-	configPath := filepath.Join(binDir, path)
 	// Read the JSON file
-	jsonFile, err := os.Open(configPath)
+	jsonFile, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -118,42 +88,19 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 	// Unmarshal the JSON content into a Config struct
-	var config Config
-	err = json.Unmarshal(byteValue, &config)
+	var data configData
+	err = json.Unmarshal(byteValue, &data)
 	if err != nil {
 		return nil, err
 	}
+	config := Config{
+		path: path,
+		data: &data,
+	}
+	data.AccountManager.SetSave(func() error { return config.SaveConfig() })
 	return &config, nil
 }
 
-// CreateConfig creates a new configuration file.
-func CreateConfig(path string) error {
-	// Create a new Config instance and populate it
-	config := Config{
-		CurrentAccountName: "",
-		Accounts:           []Account{},
-	}
-	// Marshal the Config struct to JSON
-	jsonData, err := json.MarshalIndent(&config, "", "  ")
-	if err != nil {
-		return err
-	}
-	// Get binary path
-	binDir, err := common.GetBinaryPath()
-	if err != nil {
-		return err
-	}
-	configPath := filepath.Join(binDir, path)
-	// Create or truncate the target file
-	jsonFile, err := os.Create(configPath)
-	if err != nil {
-		return err
-	}
-	defer jsonFile.Close()
-	// Write the JSON data to the file
-	_, err = jsonFile.Write(jsonData)
-	if err != nil {
-		return err
-	}
-	return nil
+func (c *Config) GetAccountManager() *acc.AccountManager {
+	return &c.data.AccountManager
 }

@@ -2,10 +2,13 @@
 OS := $(shell uname -s)
 ifeq ($(findstring Darwin, $(OS)), Darwin)
 	BINARY_NAME = hzmind
+	INSTALL_DIR = /usr/local/bin
 else ifeq ($(findstring Linux, $(OS)), Linux)
 	BINARY_NAME = hzmind
+	INSTALL_DIR = /usr/local/bin
 else
 	BINARY_NAME = hzmind.exe
+	INSTALL_DIR = $(APPDATA)/HarzMindCode
 endif
 
 BUILD_DATE = $(shell date +%Y%m%d%H%M)
@@ -14,7 +17,6 @@ MAIN_PATH = cmd/hzmind/main.go
 
 BUILD_DIR = ./bin
 INTERNAL_DIR = ./internal
-INSTALL_DIR = $(APPDATA)/HarzMindCode
 
 VERSION_FILE = version.go
 
@@ -63,6 +65,17 @@ clean: confirm
 ## install: install the application for the user
 .PHONY: install
 install:
+ifeq ($(findstring Darwin, $(OS)), Darwin)
+	@echo "Installing on macOS..."
+	@sudo cp ${BUILD_DIR}/${BINARY_NAME} $(INSTALL_DIR)/
+	@sudo chmod +x $(INSTALL_DIR)/${BINARY_NAME}
+	@echo "Installation complete! You can now run '${BINARY_NAME}' from anywhere."
+else ifeq ($(findstring Linux, $(OS)), Linux)
+	@echo "Installing on Linux..."
+	@sudo cp ${BUILD_DIR}/${BINARY_NAME} $(INSTALL_DIR)/
+	@sudo chmod +x $(INSTALL_DIR)/${BINARY_NAME}
+	@echo "Installation complete! You can now run '${BINARY_NAME}' from anywhere."
+else
 	@mkdir -p $(INSTALL_DIR)
 	@echo "Copying binary to $(INSTALL_DIR)..."
 	@cp ${BUILD_DIR}/${BINARY_NAME} $(INSTALL_DIR)/
@@ -70,3 +83,4 @@ install:
 	@echo "To make it available in your PATH, add $(APPDATA)/HarzMindCode to your environment variables manually."
 	@echo "On Windows, go to System Properties > Environment Variables and edit the User PATH."
 	@echo "Please restart your terminal for changes to take effect."
+endif

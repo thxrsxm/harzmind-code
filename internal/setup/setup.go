@@ -5,30 +5,26 @@ package setup
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/thxrsxm/harzmind-code/internal/common"
 	"github.com/thxrsxm/harzmind-code/internal/config"
 )
 
-// SetupConfigFile sets up the configuration file.
-// It checks if the configuration file exists, and if not, creates a new one.
-func SetupConfigFile() error {
-	// Get binary path
-	binDir, err := common.GetBinaryPath()
-	if err != nil {
-		return err
-	}
-	configPath := filepath.Join(binDir, common.PATH_FILE_CONFIG)
+func SetupBinaryDataDir() error {
+	return os.MkdirAll(common.PATH_DIR_BINARY_DATA, 0755)
+}
+
+func SetupConfigFile() (*config.Config, error) {
 	// Check config file not exists
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+	if _, err := os.Stat(common.PATH_FILE_CONFIG); os.IsNotExist(err) {
 		// Create new config file
-		err := config.CreateConfig(common.PATH_FILE_CONFIG)
+		config, err := config.NewConfig(common.PATH_FILE_CONFIG)
 		if err != nil {
-			return nil
+			return nil, err
 		}
+		return config, nil
 	}
-	return nil
+	return config.LoadConfig(common.PATH_FILE_CONFIG)
 }
 
 // SetupProjectDir sets up the project directory.
