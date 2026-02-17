@@ -21,6 +21,7 @@ var (
 )
 
 func init() {
+	// Set a custom usage function to provide clear, user-friendly CLI guidance.
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n\nOptions:\n", os.Args[0])
 		flag.PrintDefaults()
@@ -44,6 +45,7 @@ func PrintDefaults() {
 	flag.PrintDefaults()
 }
 
+// PrintUsage invokes the custom Usage function defined in init().
 func PrintUsage() {
 	flag.Usage()
 }

@@ -1,6 +1,5 @@
-// Package repl implements the Read-Eval-Print Loop for interactive user interaction,
-// defining and executing slash commands for account management, codebase operations,
-// external tool execution, and handling user messages sent to the LLM.
+// Package repl provides a Read-Eval-Print Loop (REPL) implementation for the HarzMind Code application.
+// It supports registering and executing slash-commands (e.g., /help, /exit) and integrating with the main input loop.
 package repl
 
 import (
@@ -12,15 +11,14 @@ import (
 	"github.com/thxrsxm/rnbw"
 )
 
-// REPL represents a Read-Eval-Print Loop for the HarzMind Code application.
+// REPL represents a Read-Eval-Print Loop.
 type REPL struct {
 	running  bool
 	commands []CMD
 	main     func(arg string) error
 }
 
-// NewREPL creates a new REPL instance.
-// If outputFile is true, it will write output to a file.
+// NewREPL initializes and returns a new REPL instance with the given main handler.
 func NewREPL(main func(arg string) error) (*REPL, error) {
 	r := &REPL{
 		running:  false,
@@ -43,6 +41,7 @@ func NewREPL(main func(arg string) error) (*REPL, error) {
 	return r, nil
 }
 
+// PrintHelp prints all registered commands (sorted) to stdout with formatting and color.
 func (r *REPL) PrintHelp() error {
 	output.SetWriteMode(output.STDOUT)
 	for _, v := range r.commands {
@@ -55,6 +54,7 @@ func (r *REPL) PrintHelp() error {
 	return nil
 }
 
+// ExitREPL signals the REPL loop to stop and logs the exit event.
 func (r *REPL) ExitREPL() error {
 	r.running = false
 	logger.Log(logger.INFO, "%s", "repl exit")

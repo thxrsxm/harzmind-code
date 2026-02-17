@@ -1,3 +1,5 @@
+// Package acc manages user accounts for API access, including authentication, configuration,
+// session state (login/logout), and interactive account management commands.
 package acc
 
 import (
@@ -36,12 +38,15 @@ func (a Account) String() string {
 	)
 }
 
+// AccountManager manages a collection of accounts and tracks the currently logged-in account.
 type AccountManager struct {
 	CurrentAccountName string    `json:"currentAccount"`
 	Accounts           []Account `json:"accounts"`
 	save               func() error
 }
 
+// NewAccountManager initializes a new AccountManager with an initial empty account list and no current account.
+// The provided `save` function is used internally to persist changes after mutations.
 func NewAccountManager(save func() error) *AccountManager {
 	return &AccountManager{
 		CurrentAccountName: "",
@@ -50,6 +55,7 @@ func NewAccountManager(save func() error) *AccountManager {
 	}
 }
 
+// SetSave updates the persistent save callback used to commit changes.
 func (m *AccountManager) SetSave(save func() error) {
 	m.save = save
 }
@@ -68,6 +74,7 @@ func (m *AccountManager) GetAccount(name string) (*Account, error) {
 }
 
 // GetCurrentAccount retrieves the currently active account.
+// Returns an error if no account is currently logged in.
 func (m *AccountManager) GetCurrentAccount() (*Account, error) {
 	if len(m.CurrentAccountName) == 0 {
 		return nil, fmt.Errorf("no current account")
@@ -75,7 +82,9 @@ func (m *AccountManager) GetCurrentAccount() (*Account, error) {
 	return m.GetAccount(m.CurrentAccountName)
 }
 
-// AddAccount adds a new account to the configuration.
+// AddAccount adds a new account to the manager's list, avoiding duplicates.
+// It returns an error if an account with the same name already exists.
+// Persists the updated list via the save callback.
 func (m *AccountManager) AddAccount(account Account) error {
 	// Check for existing account to prevent duplicates
 	if _, err := m.GetAccount(account.Name); err == nil {
@@ -86,6 +95,8 @@ func (m *AccountManager) AddAccount(account Account) error {
 }
 
 // RemoveAccount removes an account by name.
+// If the removed account is the current one, it automatically logs out (clears CurrentAccountName).
+// Persists the updated list via the save callback.
 func (m *AccountManager) RemoveAccount(name string) error {
 	for i := range m.Accounts {
 		if m.Accounts[i].Name == name {
@@ -101,6 +112,9 @@ func (m *AccountManager) RemoveAccount(name string) error {
 	return m.save()
 }
 
+// Login sets the given account name as the current active account.
+// Returns an error if the account does not exist.
+// Persists the updated session via the save callback.
 func (m *AccountManager) Login(accountName string) error {
 	if _, err := m.GetAccount(accountName); err != nil {
 		return err
@@ -109,6 +123,8 @@ func (m *AccountManager) Login(accountName string) error {
 	return m.save()
 }
 
+// Logout clears the current account and returns the name of the account just logged out from.
+// Returns an error if no account was currently logged in.
 func (m *AccountManager) Logout() (string, error) {
 	name := m.CurrentAccountName
 	if m.CurrentAccountName == "" {
@@ -118,6 +134,8 @@ func (m *AccountManager) Logout() (string, error) {
 	return name, m.save()
 }
 
+// PrintAccount prints the details of a named account using the output module.
+// Returns an error if the account does not exist.
 func (m *AccountManager) PrintAccount(accountName string) error {
 	account, err := m.GetAccount(accountName)
 	if err != nil {
@@ -127,6 +145,8 @@ func (m *AccountManager) PrintAccount(accountName string) error {
 	return nil
 }
 
+// PrintAllAccounts prints all registered accounts, separated by blank lines.
+// If no accounts exist, prints "no accounts".
 func (m *AccountManager) PrintAllAccounts() {
 	if len(m.Accounts) == 0 {
 		output.Println("no accounts")
@@ -134,12 +154,22 @@ func (m *AccountManager) PrintAllAccounts() {
 	}
 	for i := range m.Accounts {
 		output.Println(m.Accounts[i])
+		// Blank line between accounts
 		if i < len(m.Accounts)-1 {
 			output.Println()
 		}
 	}
 }
 
+// HandleCommands parses and executes account-related commands from a string input.
+// Supported single-word commands:
+//   - `new`: invokes account creation wizard
+//   - `logout`: logs out from current account
+//
+// Supported two-word commands:
+//   - `login <name>`
+//   - `remove <name>`
+//   - `info <name>`
 func (m *AccountManager) HandleCommands(input string) error {
 	if len(input) == 0 {
 		m.PrintAllAccounts()
@@ -149,7 +179,7 @@ func (m *AccountManager) HandleCommands(input string) error {
 	if len(args) == 1 {
 		switch args[0] {
 		case "new":
-			// Create a new account
+			// Create a new account via interactive wizard
 			account, err := handleAccountCreation()
 			if err != nil {
 				return err
@@ -163,7 +193,7 @@ func (m *AccountManager) HandleCommands(input string) error {
 			logger.Log(logger.INFO, "created account '%s'", account.Name)
 			return nil
 		case "logout":
-			// Logout
+			// Logout from current account
 			name, err := m.Logout()
 			if err != nil {
 				return err
@@ -182,7 +212,7 @@ func (m *AccountManager) HandleCommands(input string) error {
 		}
 		switch args[0] {
 		case "login":
-			// Login
+			// Login to specified account
 			if err := m.Login(args[1]); err != nil {
 				return err
 			}
@@ -192,7 +222,7 @@ func (m *AccountManager) HandleCommands(input string) error {
 			logger.Log(logger.INFO, "logged in to '%s'", args[1])
 			return nil
 		case "remove":
-			// Remove account
+			// Remove specified account
 			if err := m.RemoveAccount(args[1]); err != nil {
 				return err
 			}
@@ -202,7 +232,7 @@ func (m *AccountManager) HandleCommands(input string) error {
 			logger.Log(logger.WARNING, "removed account '%s'", args[1])
 			return nil
 		case "info":
-			// Show account info
+			// Show details of specified account
 			if err := m.PrintAccount(args[1]); err != nil {
 				return err
 			}

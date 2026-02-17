@@ -1,5 +1,8 @@
-// Package app orchestrates the application's lifecycle, processing command-line arguments,
-// setting up configuration files, initializing the project if needed, and launching the REPL.
+// Package app orchestrates the application's lifecycle: it parses command-line arguments,
+// initializes binary and project directories, sets up configuration, initializes logging/output/input,
+// and launches the interactive REPL with built-in commands.
+//
+// It serves as the main entry point (`func Run()`) and ties together all internal subsystems.
 package app
 
 import (
@@ -22,6 +25,18 @@ import (
 	"github.com/thxrsxm/rnbw"
 )
 
+// Run initializes and executes the application.
+// It performs top-level orchestration:
+//  1. Parses CLI arguments.
+//  2. Ensures binary data directory exists.
+//  3. Initializes project directory if requested (`--init`).
+//  4. Initializes logger, output, and input modules.
+//  5. Loads or creates configuration file.
+//  6. Registers built-in REPL commands.
+//  7. Logs into current account (if any), prints startup info, and starts the REPL.
+//
+// On fatal errors (e.g., config/setup failures), it prints colored error messages to stdout/stderr
+// and exits with code 1. Otherwise, it blocks in REPL mode and exits only when user quits.
 func Run() {
 	// Parse command line flags
 	args.Parse()
@@ -32,12 +47,13 @@ func Run() {
 		rnbw.ResetColor()
 		os.Exit(1)
 	}
-	// Init project
+	// Initialize project directory structure
 	if *args.InitFlag {
 		if err := setup.SetupProjectDir(); err != nil {
 			rnbw.ForgroundColor(rnbw.Red)
 			fmt.Fprintf(os.Stderr, "[ERROR] %v\n", err)
 			rnbw.ResetColor()
+			os.Exit(1)
 		}
 		rnbw.ForgroundColor(rnbw.Green)
 		fmt.Fprint(os.Stdout, "Project initiated :)\n")
@@ -86,17 +102,17 @@ func Run() {
 		logger.Log(logger.ERROR, "%s", msg)
 		os.Exit(1)
 	}
-	// Show help
+	// Handle help flag
 	if *args.HelpFlag {
 		args.PrintUsage()
 		os.Exit(0)
 	}
-	// Show version
+	// Handle version flag
 	if *args.VersionFlag {
 		fmt.Fprintf(os.Stdout, "v%s\n", internal.VERSION_DATE)
 		os.Exit(0)
 	}
-	// Create new llm client
+	// Create new LLM client
 	llmClient := llmx.NewLLMx()
 	// Create new REPL
 	r, err := repl.NewREPL(func(input string) error {
@@ -123,7 +139,10 @@ func Run() {
 	// -----------------------
 	// DEFINE AND ADD COMMANDS
 	// -----------------------
-	// /brocken
+	//
+	// All commands accept optional arguments via `arg` string.
+	// Errors returned are displayed to the user.
+	// /brocken — display ASCII art (Easter egg)
 	r.AddCommand(repl.NewCMD(
 		"brocken",
 		"Shows the Brocken",
@@ -132,7 +151,7 @@ func Run() {
 			return nil
 		},
 	))
-	// /tree
+	// /tree - visualize project structure as a tree
 	r.AddCommand(repl.NewCMD(
 		"tree",
 		"Codebase tree visualization",
@@ -145,7 +164,7 @@ func Run() {
 			return nil
 		},
 	))
-	// /info
+	// /info — show app metadata
 	r.AddCommand(repl.NewCMD(
 		"info",
 		"Show info",
@@ -158,7 +177,7 @@ func Run() {
 			return nil
 		},
 	))
-	// /session
+	// /session — display current session state
 	r.AddCommand(repl.NewCMD(
 		"session",
 		"Shows current session info",
@@ -174,13 +193,13 @@ func Run() {
 					model = "-"
 				}
 			}
-			// Get working directory
+			// Get current working directory
 			dir, err := os.Getwd()
 			if err != nil {
 				dir = "-"
 				logger.Log(logger.ERROR, "%v", err)
 			}
-			// Print session
+			// Print session details
 			output.Printf("Account:	'%s'\n", accountName)
 			output.Printf("Model:		'%s'\n", model)
 			output.Printf("Directory:	'%s'\n", dir)
@@ -188,7 +207,7 @@ func Run() {
 			return nil
 		},
 	))
-	// /bash
+	// /bash — execute shell commands via os/exec
 	r.AddCommand(repl.NewCMD(
 		"bash",
 		"Run bash",
@@ -204,7 +223,7 @@ func Run() {
 			return nil
 		},
 	))
-	// /editor
+	// /editor — open a file in the configured CLI editor (e.g., edit, nano)
 	r.AddCommand(repl.NewCMD(
 		"editor",
 		"Open CLI editor",
@@ -221,7 +240,7 @@ func Run() {
 			return fmt.Errorf("wrong format")
 		},
 	))
-	// /clear
+	// /clear — reset conversation history
 	r.AddCommand(repl.NewCMD(
 		"clear",
 		"Clear session context",
@@ -234,7 +253,7 @@ func Run() {
 			return nil
 		},
 	))
-	// /acc
+	// /acc — delegate to account management
 	r.AddCommand(repl.NewCMD(
 		"acc",
 		"Account management",
@@ -242,7 +261,7 @@ func Run() {
 			return config.GetAccountManager().HandleCommands(arg)
 		},
 	))
-	// /model
+	// /model - change model per current account (persisted in config)
 	r.AddCommand(repl.NewCMD(
 		"model",
 		"Change model",
@@ -255,9 +274,9 @@ func Run() {
 			if err != nil {
 				return err
 			}
-			// Set model
+			// Update model
 			account.Model = arg
-			// Save config file
+			// Persist change
 			err = config.SaveConfig()
 			if err != nil {
 				return err
@@ -270,7 +289,7 @@ func Run() {
 			return nil
 		},
 	))
-	// /models
+	// /models — fetch and list available models from the current API
 	r.AddCommand(repl.NewCMD(
 		"models",
 		"List all models",
@@ -292,7 +311,7 @@ func Run() {
 			return nil
 		},
 	))
-	// /init
+	// /init — reinitialize project directory (from REPL)
 	r.AddCommand(repl.NewCMD(
 		"init",
 		"Initialize project",
@@ -321,6 +340,7 @@ func Run() {
 		err = config.GetAccountManager().Login(account.Name)
 		if err != nil {
 			output.PrintWarning("no account\n")
+			logger.Log(logger.WARNING, "%s", "failed to auto-login")
 		} else {
 			rnbw.ForgroundColor(rnbw.Green)
 			output.Printf("Successfully logged in to %s\n", account.Name)

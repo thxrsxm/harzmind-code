@@ -29,8 +29,7 @@ func (r *REPL) AddCommand(command *CMD) {
 	r.sortCommands()
 }
 
-// HandleCommand handles a slash command.
-// It searches for a matching command and executes it.
+// HandleCommand looks up and executes a registered slash command.
 func (r *REPL) HandleCommand(command, arg string) error {
 	for i := range r.commands {
 		if command == r.commands[i].name {
@@ -42,6 +41,7 @@ func (r *REPL) HandleCommand(command, arg string) error {
 	return fmt.Errorf("unknown command")
 }
 
+// sortCommands sorts the registered commands alphabetically by name (case-sensitive).
 func (r *REPL) sortCommands() {
 	sort.Slice(r.commands, func(i, j int) bool {
 		return r.commands[i].name < r.commands[j].name

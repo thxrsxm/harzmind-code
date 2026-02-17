@@ -67,6 +67,7 @@ func PrintBrocken() {
 	output.SetWriteMode(output.ALL)
 }
 
+// getBinaryDataPath returns the platform-specific directory path where the application stores its data.
 func getBinaryDataPath() string {
 	goos := runtime.GOOS
 	homeDir, err := os.UserHomeDir()

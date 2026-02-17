@@ -1,3 +1,8 @@
+// Package llmx provides a high-level abstraction for interacting with LLMs
+// in the HarzMind Code application. It manages conversation history (messages),
+// token counting (using tiktoken), and integrates visual feedback (spinner)
+// during API calls. It also dynamically constructs the system prompt by
+// embedding the project’s README (`HZMIND.md`) and a serialized codebase snapshot.
 package llmx
 
 import (
@@ -15,15 +20,23 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal/output"
 )
 
+// LLMx encapsulates the state of a single LLM conversation session.
+// It maintains the full message history and tracks total token usage.
 type LLMx struct {
 	tokens   int
 	messages []api.Message
 }
 
+// NewLLMx creates and returns a new LLMx instance initialized with an empty conversation.
+// The returned LLMx is ready to receive user messages via HandleUserMessage.
 func NewLLMx() *LLMx {
 	return &LLMx{tokens: 0, messages: []api.Message{}}
 }
 
+// HandleUserMessage sends a user message to the LLM API and returns the AI’s response.
+// It appends the user message to the conversation history, handles the API request
+// with a visual spinner, and updates token usage. If the call fails, the user
+// message is reverted from the history (to preserve conversational integrity).
 func (l *LLMx) HandleUserMessage(msg, apiURL, model, apiKey string) (string, error) {
 	logger.Log(logger.INFO, "handling user message (length: %d chars)", len(msg))
 	// Create system prompt
@@ -71,16 +84,19 @@ func (l *LLMx) HandleUserMessage(msg, apiURL, model, apiKey string) (string, err
 	return resp, nil
 }
 
+// GetTokens returns the current total token count across all messages in the session.
 func (l *LLMx) GetTokens() int {
 	return l.tokens
 }
 
+// ClearMessages resets the conversation history to empty and resets token count.
 func (l *LLMx) ClearMessages() {
 	l.messages = []api.Message{}
 	l.updateTokens("")
 }
 
-// updateTokens calculates the current token count in the conversation context.
+// updateTokens recalculates and updates the cumulative token count for the conversation.
+// It uses tiktoken to encode all messages with the specified model-specific tokenizer.
 func (l *LLMx) updateTokens(model string) {
 	encoding, err := tiktoken.EncodingForModel(model)
 	if err != nil {
@@ -94,9 +110,9 @@ func (l *LLMx) updateTokens(model string) {
 	l.tokens = count
 }
 
-// createSystemPrompt builds the system prompt by combining HZMIND.md and codebase data.
+// createSystemPrompt builds the system prompt by combining HZMIND.md and the codebase data.
 func createSystemPrompt() (string, error) {
-	// Get code base
+	// Collect and serialize codebase files
 	files, err := codebase.GetCodeBase(".")
 	if err != nil {
 		return "", err

@@ -10,10 +10,17 @@ import (
 	"github.com/thxrsxm/harzmind-code/internal/config"
 )
 
+// SetupBinaryDataDir ensures the binary data directory exists.
+// It creates the directory (and all parent directories) with permission 0755 if it does not already exist.
+// No error is returned if the directory already exists.
 func SetupBinaryDataDir() error {
 	return os.MkdirAll(common.PATH_DIR_BINARY_DATA, 0755)
 }
 
+// SetupConfigFile initializes or loads the application configuration file.
+// If the config file at common.PATH_FILE_CONFIG does not exist, it creates a new default config
+// using config.NewConfig and returns it.
+// If the file already exists, it loads and returns the existing configuration via config.LoadConfig.
 func SetupConfigFile() (*config.Config, error) {
 	// Check config file not exists
 	if _, err := os.Stat(common.PATH_FILE_CONFIG); os.IsNotExist(err) {

@@ -20,6 +20,7 @@ const (
 	DIR_OUT string = "out"
 )
 
+// PATH_DIR_BINARY_DATA is the full path to the binary data directory.
 var PATH_DIR_BINARY_DATA string = getBinaryDataPath()
 
 var (
