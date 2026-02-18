@@ -43,7 +43,7 @@ build: genver
 
 ## export: export the application
 .PHONY: export
-export: genver
+export: build
 	@mkdir -p ${BUILD_DIR}/${BUILD_DATE}
 	#GOARCH=amd64 GOOS=darwin go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-darwin-amd64 ${MAIN_PATH}
 	#GOARCH=arm64 GOOS=darwin go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-darwin-arm64 ${MAIN_PATH}

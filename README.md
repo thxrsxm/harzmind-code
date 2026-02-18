@@ -18,11 +18,11 @@ irm https://raw.githubusercontent.com/thxrsxm/harzmind-code/main/install.ps1 | i
 
 ### macOS
 
-> Todo
+> COMING SOON
 
 ### Linux
 
-> Todo
+> COMING SOON
 
 ## Getting Started: First-Time Setup
 
@@ -100,7 +100,7 @@ This file is the heart of HarzMind Code. Its content is sent to the LLM as the *
 ```markdown
 You are an expert Go developer and a helpful programming assistant. Your task is to analyze the provided codebase and answer questions accurately.
 
-When I ask for a code change, you must provide only the complete, updated content of the file(s) that need to be changed. Do not add explanations unless I explicitly ask for them. Do not wrap the code in a markdown code block.
+When I ask for a code change, you must provide only the complete, updated content of the file(s) that need to be changed. Do not add explanations unless I explicitly ask for them.
 ```
 
 ### The `.hzmignore` File
@@ -127,7 +127,10 @@ You can add any other patterns (e.g., `build/`, `*.log`, `*.tmp`) to your `hzmin
 
 All account configurations, including your API credentials, are stored in a `config.json` file.
 
-*   **Location:** This file is located in the same directory as the `hzmind` executable. If you used the PowerShell installer on Windows, this will be `%LOCALAPPDATA%\HarzMindCode\`.
+*   **Location:** The file is stored in a platform-specific data directory:
+    *   **macOS:** `~/Library/Application Support/hzmind/`
+    *   **Linux:** `~/.config/hzmind/`
+    *   **Windows:** The same directory as the `hzmind.exe` executable. If you used the PowerShell installer, this will be `%LOCALAPPDATA%\HarzMindCode\`.
 *   **Security:** Your API keys are stored in plain text in this file. Ensure that this directory is secure and not synced to public repositories.
 *   **Management:** You should not edit this file manually. Use the `/acc` commands within the application to manage your accounts safely.
 
@@ -153,13 +156,14 @@ Commands are used inside the application's interactive prompt and start with a `
 | `/help`                        | List all available REPL commands.                            |
 | `/exit`                        | Quit the application.                                        |
 | `/init`                        | Initializes the project (same as the `-i` flag).             |
-| `/forget`                      | Clears the current chat history, starting a fresh conversation (but keeps the system prompt and codebase). |
+| `/clear`                       | Clears the current chat history, starting a fresh conversation (but keeps the system prompt and codebase). |
 | `/info`                        | Show application info, version, and author.                  |
+| `/session`                     | Show current session info including account, model, directory, and token count. |
+| `/tree`                        | Display the project's file structure as a tree, respecting ignore patterns. |
 | `/models`                      | List all available models from the currently logged-in account's API. |
 | `/model <model_name>`          | Change the LLM model for the current session (e.g., `/model gpt-3.5-turbo`). |
 | `/bash <command>`              | Execute a shell command and display the output (e.g., `/bash ls -l`). |
 | `/editor <editor_name> [file]` | Open a file in a terminal-based editor (e.g., `/editor nano internal/api/api.go`). |
-| **Account Management**         |                                                              |
 | `/acc`                         | List all configured accounts.                                |
 | `/acc new`                     | Start the wizard to create a new account (prompts for name, URL, key, model). |
 | `/acc login <account_name>`    | Log in to a specific account to make it active.              |
