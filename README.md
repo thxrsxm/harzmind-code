@@ -193,3 +193,7 @@ Commands are used inside the application's interactive prompt and start with a `
    
    [LLM provides the full file content, which you can copy and paste]
    ```
+
+## License
+
+MIT License
