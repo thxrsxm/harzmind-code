@@ -8,7 +8,7 @@ else ifeq ($(findstring Linux, $(OS)), Linux)
 	INSTALL_DIR = /usr/local/bin
 else
 	BINARY_NAME = hzmind.exe
-	INSTALL_DIR = $(APPDATA)/HarzMindCode
+	INSTALL_DIR = $(LOCALAPPDATA)/HarzMindCode
 endif
 
 BUILD_DATE = $(shell date +%Y%m%d%H%M)
@@ -48,8 +48,8 @@ export: build
 	#GOARCH=amd64 GOOS=darwin go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-darwin-amd64 ${MAIN_PATH}
 	#GOARCH=arm64 GOOS=darwin go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-darwin-arm64 ${MAIN_PATH}
 	#GOARCH=amd64 GOOS=linux go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-linux-amd64 ${MAIN_PATH}
-	GOARCH=amd64 GOOS=windows go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}-windows-amd64.exe ${MAIN_PATH}
-	#GOARCH=amd64 GOOS=windows go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME}.exe ${MAIN_PATH}
+	GOARCH=amd64 GOOS=windows go build -o ${BUILD_DIR}/${BUILD_DATE}/hzmind-windows-amd64.exe ${MAIN_PATH}
+	#GOARCH=amd64 GOOS=windows go build -o ${BUILD_DIR}/${BUILD_DATE}/${BINARY_NAME} ${MAIN_PATH}
 
 ## run: run the application
 .PHONY: run
@@ -76,11 +76,11 @@ else ifeq ($(findstring Linux, $(OS)), Linux)
 	@sudo chmod +x $(INSTALL_DIR)/${BINARY_NAME}
 	@echo "Installation complete! You can now run '${BINARY_NAME}' from anywhere."
 else
-	@mkdir -p $(INSTALL_DIR)
+	@mkdir -p "$(INSTALL_DIR)"
 	@echo "Copying binary to $(INSTALL_DIR)..."
-	@cp ${BUILD_DIR}/${BINARY_NAME} $(INSTALL_DIR)/
+	@cp ${BUILD_DIR}/${BINARY_NAME} "$(INSTALL_DIR)/"
 	@echo "Installation complete! The binary has been copied to $(INSTALL_DIR)."
-	@echo "To make it available in your PATH, add $(APPDATA)/HarzMindCode to your environment variables manually."
+	@echo "To make it available in your PATH, add $(INSTALL_DIR) to your environment variables manually."
 	@echo "On Windows, go to System Properties > Environment Variables and edit the User PATH."
 	@echo "Please restart your terminal for changes to take effect."
 endif
